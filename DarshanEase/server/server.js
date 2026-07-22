@@ -9,9 +9,20 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
-app.use(helmet());
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(morgan('dev'));
+
+// Root Health Check Route
+app.get('/', (req, res) => {
+  res.send('DarshanEase Backend API is running!');
+});
+
 
 // Database Connection
 mongoose
