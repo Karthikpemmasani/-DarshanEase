@@ -1,0 +1,109 @@
+import React, { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import Loader from '../components/Loader';
+import toast from 'react-hot-toast';
+import { Ticket, Calendar, XCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const MyBookings = () => {
+  const { user } = useContext(AuthContext);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchBookings = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.get('/api/bookings', config);
+      setBookings(data);
+    } catch (error) {
+      toast.error('Failed to load bookings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const handleCancel = async (id) => {
+    if (window.confirm('Are you sure you want to cancel this booking?')) {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        await axios.delete(`/api/bookings/${id}`, config);
+        toast.success('Booking cancelled');
+        fetchBookings(); // refresh list
+      } catch (error) {
+        toast.error('Cancellation failed');
+      }
+    }
+  };
+
+  if (loading) return <Loader />;
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 flex items-center">
+          <Ticket className="w-8 h-8 mr-3 text-primary-500" /> My Bookings
+        </h1>
+
+        {bookings.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center border border-gray-100 dark:border-gray-700">
+            <Ticket className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white">No bookings found</h3>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">You haven't booked any darshan slots yet.</p>
+            <div className="mt-6">
+              <Link to="/temples" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+                Browse Temples
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bookings.map((booking) => (
+              <div key={booking._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover-lift border border-gray-100 dark:border-gray-700 flex flex-col">
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-white ${booking.status === 'completed' ? 'bg-green-500' : booking.status === 'cancelled' ? 'bg-red-500' : 'bg-primary-500'}`}>
+                  {booking.status}
+                </div>
+                <div className="p-5 flex-grow">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">
+                    {booking.templeId?.name || 'Temple Removed'}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{booking.templeId?.location}</p>
+                  
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Ticket:</span>
+                      <span>{booking.ticketNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Date:</span>
+                      <span>{new Date(booking.date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Slot:</span>
+                      <span>{booking.slot}</span>
+                    </div>
+                  </div>
+                  
+                  {booking.status === 'booked' && (
+                    <button 
+                      onClick={() => handleCancel(booking._id)}
+                      className="w-full mt-auto flex items-center justify-center px-4 py-2 border border-red-300 dark:border-red-800 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" /> Cancel Booking
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MyBookings;
