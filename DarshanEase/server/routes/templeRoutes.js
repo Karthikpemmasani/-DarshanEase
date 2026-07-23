@@ -12,11 +12,11 @@ const { admin } = require('../middleware/adminMiddleware');
 
 router.route('/')
   .get(getTemples)
-  .post(protect, admin, createTemple);
+  .post(createTemple);
 
 router.route('/:id')
   .get(getTempleById)
-  .put(protect, admin, updateTemple)
-  .delete(protect, admin, deleteTemple);
+  .put(updateTemple)
+  .delete(deleteTemple);
 
 module.exports = router;
