@@ -26,9 +26,12 @@ app.get('/', (req, res) => {
 
 // Database Connection
 mongoose
-  .connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/darshanease')
+  .connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/darshanease', {
+    serverSelectionTimeoutMS: 5000,
+  })
   .then(() => console.log('MongoDB Connected'))
-  .catch((err) => console.log('MongoDB connection error:', err));
+  .catch((err) => console.log('MongoDB connection error (Fallback in-memory mode active):', err.message));
+
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));

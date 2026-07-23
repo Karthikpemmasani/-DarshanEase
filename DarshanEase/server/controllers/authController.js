@@ -1,10 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const memoryStore = require('../utils/memoryStore');
 
 // Generate JWT
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET || 'supersecretjwtkey_darshanease';
+  return jwt.sign({ id }, secret, {
     expiresIn: '30d',
   });
 };
@@ -20,38 +23,58 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please add all fields' });
     }
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+    let newUser = null;
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+          return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const created = await User.create({
+          name,
+          email,
+          password: hashedPassword,
+          phone,
+        });
+
+        newUser = {
+          _id: created.id,
+          name: created.name,
+          email: created.email,
+          phone: created.phone,
+          role: created.role,
+        };
+      } catch (err) {
+        console.log('MongoDB register error, using memoryStore:', err.message);
+      }
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    if (!newUser) {
+      const memExists = memoryStore.findUserByEmail(email);
+      if (memExists) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+      const createdMem = await memoryStore.createUser({ name, email, password, phone });
+      newUser = {
+        _id: createdMem._id,
+        name: createdMem.name,
+        email: createdMem.email,
+        phone: createdMem.phone,
+        role: createdMem.role,
+      };
+    }
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
+    res.status(201).json({
+      ...newUser,
+      token: generateToken(newUser._id),
     });
-
-    if (user) {
-      res.status(201).json({
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
-    }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'Registration failed' });
   }
 };
 
@@ -61,24 +84,48 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    let foundUser = null;
 
-    // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const dbUser = await User.findOne({ email }).select('+password');
+        if (dbUser && (await bcrypt.compare(password, dbUser.password))) {
+          foundUser = {
+            _id: dbUser.id,
+            name: dbUser.name,
+            email: dbUser.email,
+            phone: dbUser.phone,
+            role: dbUser.role,
+          };
+        }
+      } catch (err) {
+        console.log('MongoDB login error, using memoryStore:', err.message);
+      }
+    }
 
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (!foundUser) {
+      const memUser = memoryStore.findUserByEmail(email);
+      if (memUser && (await bcrypt.compare(password, memUser.password))) {
+        foundUser = {
+          _id: memUser._id,
+          name: memUser.name,
+          email: memUser.email,
+          phone: memUser.phone,
+          role: memUser.role,
+        };
+      }
+    }
+
+    if (foundUser) {
       res.json({
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        token: generateToken(user._id),
+        ...foundUser,
+        token: generateToken(foundUser._id),
       });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'Login failed' });
   }
 };
 
@@ -87,8 +134,11 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    res.json(user);
+    if (req.user) {
+      res.json(req.user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -99,3 +149,4 @@ module.exports = {
   loginUser,
   getProfile,
 };
+
