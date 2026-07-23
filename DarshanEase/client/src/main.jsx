@@ -6,8 +6,9 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
 
-// Set direct backend API URL for production and development
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'https://darshanease-6lm4.onrender.com';
+// Set API URL (uses Vercel proxy rewrite automatically in production)
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
