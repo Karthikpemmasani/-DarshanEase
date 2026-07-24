@@ -37,15 +37,37 @@ mongoose
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/temples', require('./routes/templeRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
-// Generic Admin Stats route (optional enhancement)
 app.get('/api/admin/stats', require('./middleware/authMiddleware').protect, require('./middleware/adminMiddleware').admin, async (req, res) => {
   try {
-    const usersCount = await mongoose.model('User').countDocuments();
-    const templesCount = await mongoose.model('Temple').countDocuments();
-    const bookingsCount = await mongoose.model('Booking').countDocuments();
+    let usersCount = 0;
+    let templesCount = 0;
+    let bookingsCount = 0;
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        usersCount = await mongoose.model('User').countDocuments();
+        templesCount = await mongoose.model('Temple').countDocuments();
+        bookingsCount = await mongoose.model('Booking').countDocuments();
+      } catch (err) {
+        console.log('MongoDB stats error, falling back:', err.message);
+      }
+    }
+
+    if (usersCount === 0 && templesCount === 0) {
+      const memoryStore = require('./utils/memoryStore');
+      usersCount = memoryStore.users.length;
+      templesCount = memoryStore.temples.length;
+      bookingsCount = memoryStore.bookings.length;
+    }
+
     res.json({ usersCount, templesCount, bookingsCount });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching stats' });
+    const memoryStore = require('./utils/memoryStore');
+    res.json({
+      usersCount: memoryStore.users.length,
+      templesCount: memoryStore.temples.length,
+      bookingsCount: memoryStore.bookings.length,
+    });
   }
 });
 
