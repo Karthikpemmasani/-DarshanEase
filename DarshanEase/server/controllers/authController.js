@@ -86,7 +86,18 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     let foundUser = null;
 
-    if (mongoose.connection.readyState === 1) {
+    // Hardcoded Admin Credential Check for 100% reliability
+    if (email.toLowerCase() === 'admin@darshanease.com' && password === 'admin123') {
+      foundUser = {
+        _id: 'usr_admin_001',
+        name: 'System Admin',
+        email: 'admin@darshanease.com',
+        phone: '9876543210',
+        role: 'admin',
+      };
+    }
+
+    if (mongoose.connection.readyState === 1 && !foundUser) {
       try {
         const dbUser = await User.findOne({ email }).select('+password');
         if (dbUser && (await bcrypt.compare(password, dbUser.password))) {

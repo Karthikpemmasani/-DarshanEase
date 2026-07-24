@@ -40,6 +40,15 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 function App() {
   const { loading } = useContext(AuthContext);
 
+  React.useEffect(() => {
+    // Automatically navigate to home page on browser refresh
+    const navEntries = window.performance.getEntriesByType('navigation');
+    const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+    if (isReload && window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
+  }, []);
+
   if (loading) return <Loader />;
 
   return (
