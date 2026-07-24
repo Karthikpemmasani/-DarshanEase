@@ -22,6 +22,11 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
 
+import Faq from './pages/Faq';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import CancellationPolicy from './pages/CancellationPolicy';
+
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useContext(AuthContext);
 
@@ -50,6 +55,12 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/temples" element={<TempleList />} />
             <Route path="/temples/:id" element={<TempleDetails />} />
+            
+            {/* Policy & Help Routes */}
+            <Route path="/faq" element={<Faq />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/cancellation-policy" element={<CancellationPolicy />} />
             
             {/* Protected Routes */}
             <Route path="/book/:id" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />

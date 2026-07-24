@@ -21,38 +21,39 @@ const Footer = () => {
           
           <div>
             <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><Link to="/temples" className="hover:text-white transition-colors">Browse Temples</Link></li>
-              <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              <li><Link to="/login" className="hover:text-white transition-colors">Login / Register</Link></li>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/temples" className="hover:text-orange-400 transition-colors">Browse Temples</Link></li>
+              <li><Link to="/about" className="hover:text-orange-400 transition-colors">About Us</Link></li>
+              <li><Link to="/contact" className="hover:text-orange-400 transition-colors">Support & Contact</Link></li>
+              <li><Link to="/login" className="hover:text-orange-400 transition-colors">Login / Register</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Cancellation Policy</a></li>
+            <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">Help & Policies</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/contact" className="hover:text-orange-400 transition-colors">Helpdesk Support</Link></li>
+              <li><Link to="/faq" className="hover:text-orange-400 transition-colors">FAQ</Link></li>
+              <li><Link to="/terms" className="hover:text-orange-400 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="hover:text-orange-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/cancellation-policy" className="hover:text-orange-400 transition-colors">Cancellation Policy</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">Contact Us</h3>
-            <ul className="space-y-4">
+            <ul className="space-y-4 text-sm">
               <li className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-primary-500 mt-0.5" />
-                <span className="text-sm">123 Devotion Street, Spiritual City, IN 110001</span>
+                <MapPin className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <span>Smartbridge Tech Hub, Hyderabad, Telangana 500081</span>
               </li>
               <li className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-primary-500" />
-                <span className="text-sm">+91 98765 43210</span>
+                <Phone className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                <span>1800-123-DARSHAN</span>
               </li>
               <li className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-primary-500" />
-                <span className="text-sm">support@darshanease.com</span>
+                <Mail className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                <span>support@darshanease.com</span>
               </li>
             </ul>
           </div>
