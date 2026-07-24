@@ -237,6 +237,29 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be under 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, image: reader.result }));
+        toast.success('Temple photo uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const presetPhotos = [
+    { label: 'Tirupati', url: 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800' },
+    { label: 'Varanasi', url: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&q=80&w=800' },
+    { label: 'Madurai', url: 'https://images.unsplash.com/photo-1600100397608-f010e423b961?auto=format&fit=crop&q=80&w=800' },
+    { label: 'Kedarnath', url: 'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?auto=format&fit=crop&q=80&w=800' },
+  ];
+
   if (loading) return <Loader />;
 
   return (
@@ -458,26 +481,72 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Daily Slots</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.availableSlots}
-                    onChange={(e) => setFormData({ ...formData, availableSlots: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3.5 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
+              <div>
+                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Daily Available Slots *</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={formData.availableSlots}
+                  onChange={(e) => setFormData({ ...formData, availableSlots: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              {/* Enhanced Temple Image Selection */}
+              <div>
+                <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Temple Image (Upload File or Enter URL)
+                </label>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <label className="cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-orange-400 bg-orange-50/60 dark:bg-gray-700/60 hover:bg-orange-100 dark:hover:bg-gray-600 rounded-xl text-xs font-bold text-orange-700 dark:text-orange-300 transition-colors">
+                      <Plus className="w-4 h-4" /> Select File from Device
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageFileUpload}
+                      />
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="Or paste image URL (https://...)"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="flex-1 px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+                    />
+                  </div>
+
+                  {/* Preset Photo Quick Pickers */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase">Presets:</span>
+                    {presetPhotos.map((p) => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, image: p.url })}
+                        className="px-2.5 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-orange-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
+                      >
+                        📷 {p.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Live Image Preview */}
+                  {formData.image && (
+                    <div className="relative h-28 w-full rounded-2xl overflow-hidden border-2 border-orange-200 dark:border-gray-700 shadow-md">
+                      <img
+                        src={formData.image}
+                        alt="Temple preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'; }}
+                      />
+                      <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        Live Photo Preview
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

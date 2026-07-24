@@ -33,6 +33,22 @@ const TempleList = () => {
     'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
   ];
 
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be under 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, image: reader.result }));
+        toast.success('Temple photo uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const fetchTemples = async () => {
     try {
       setLoading(true);
@@ -232,16 +248,47 @@ const TempleList = () => {
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL (Optional)</label>
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                  />
+              {/* Enhanced Temple Image Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Temple Photo (Select File from Device or Enter URL)
+                </label>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <label className="cursor-pointer flex items-center justify-center gap-2 px-3.5 py-2 border-2 border-dashed border-orange-400 bg-orange-50/60 dark:bg-gray-700/60 hover:bg-orange-100 rounded-xl text-xs font-bold text-orange-700 dark:text-orange-300 transition-colors">
+                      <Plus className="w-4 h-4" /> Upload Image File
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageFileUpload}
+                      />
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="Or paste image URL (https://...)"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="flex-1 px-3.5 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+                    />
+                  </div>
+
+                  {/* Live Image Preview */}
+                  {formData.image && (
+                    <div className="relative h-24 w-full rounded-xl overflow-hidden border border-orange-200 dark:border-gray-700 shadow-md">
+                      <img
+                        src={formData.image}
+                        alt="Temple preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'; }}
+                      />
+                      <span className="absolute top-1.5 left-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">
+                        Live Preview
+                      </span>
+                    </div>
+                  )}
                 </div>
+              </div>
               </div>
 
               <div>
