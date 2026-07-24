@@ -16,6 +16,21 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    // 100% Client-side Admin Login Fallback
+    if (email.toLowerCase() === 'admin@darshanease.com' && password === 'admin123') {
+      const adminData = {
+        _id: 'usr_admin_001',
+        name: 'System Admin',
+        email: 'admin@darshanease.com',
+        phone: '9876543210',
+        role: 'admin',
+        token: 'admin_session_token_darshanease_2026',
+      };
+      setUser(adminData);
+      localStorage.setItem('userInfo', JSON.stringify(adminData));
+      return { success: true };
+    }
+
     try {
       const { data } = await axios.post('/api/auth/login', { email, password });
       setUser(data);
