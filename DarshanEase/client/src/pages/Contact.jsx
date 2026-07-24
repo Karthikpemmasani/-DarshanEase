@@ -31,11 +31,26 @@ const Contact = () => {
     setLoading(true);
     setTimeout(() => {
       const ticketId = 'SUP-' + Math.floor(100000 + Math.random() * 900000);
-      setTicketCreated({
+      const newSupportTicket = {
         id: ticketId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
         category: formData.category,
+        subject: formData.subject,
+        message: formData.message,
+        status: 'Open',
         date: new Date().toLocaleDateString('en-IN')
-      });
+      };
+
+      try {
+        const existingSupport = JSON.parse(localStorage.getItem('darshanease_support_tickets') || '[]');
+        localStorage.setItem('darshanease_support_tickets', JSON.stringify([newSupportTicket, ...existingSupport]));
+      } catch (err) {
+        console.log('localStorage support save error');
+      }
+
+      setTicketCreated(newSupportTicket);
       toast.success(`Support Ticket ${ticketId} Created! We will respond within 2 hours.`);
       setFormData({ name: '', email: '', phone: '', category: 'Booking Help', subject: '', message: '' });
       setLoading(false);

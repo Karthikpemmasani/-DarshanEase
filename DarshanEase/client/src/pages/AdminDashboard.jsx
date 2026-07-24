@@ -115,11 +115,76 @@ const AdminDashboard = () => {
     }));
   };
 
+  const sampleSupportTickets = [
+    {
+      id: 'SUP-882941',
+      name: 'Sunita Rao',
+      email: 'sunita@gmail.com',
+      phone: '9876543210',
+      category: 'Booking Help',
+      subject: 'Need morning slot for Tirupati',
+      message: 'Want to reserve 4 slots for elderly family members.',
+      status: 'Open',
+      date: '24/7/2026'
+    },
+    {
+      id: 'SUP-991204',
+      name: 'Anand Verma',
+      email: 'anand@gmail.com',
+      phone: '9123456789',
+      category: 'Temple Listing',
+      subject: 'Add Simhachalam temple',
+      message: 'Please add Simhachalam temple in Visakhapatnam to DarshanEase.',
+      status: 'Resolved',
+      date: '23/7/2026'
+    },
+    {
+      id: 'SUP-554109',
+      name: 'Venkatesh K.',
+      email: 'venkat@gmail.com',
+      phone: '9944332211',
+      category: 'Ticket Cancellation',
+      subject: 'Refund query for cancelled pass',
+      message: 'Confirming slot release for Kashi temple ticket.',
+      status: 'Resolved',
+      date: '22/7/2026'
+    }
+  ];
+
+  const [supportTickets, setSupportTickets] = useState([]);
+
+  const fetchSupportTickets = () => {
+    let local = [];
+    try {
+      local = JSON.parse(localStorage.getItem('darshanease_support_tickets') || '[]');
+    } catch (e) {}
+    
+    const mergedMap = new Map();
+    [...local, ...sampleSupportTickets].forEach(t => {
+      if (t && t.id) mergedMap.set(t.id, t);
+    });
+    setSupportTickets(Array.from(mergedMap.values()));
+  };
+
+  const handleToggleTicketStatus = (id) => {
+    setSupportTickets((prev) =>
+      prev.map((t) => {
+        if (t.id === id) {
+          const nextStatus = t.status === 'Resolved' ? 'Open' : 'Resolved';
+          toast.success(`Ticket ${id} marked as ${nextStatus}`);
+          return { ...t, status: nextStatus };
+        }
+        return t;
+      })
+    );
+  };
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
       await fetchTemples();
       await fetchBookings();
+      fetchSupportTickets();
       await fetchStats();
       setLoading(false);
     };
@@ -283,7 +348,7 @@ const AdminDashboard = () => {
         {/* Tabs */}
         <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
           <nav className="-mb-px flex space-x-8">
-            {['dashboard', 'temples', 'bookings'].map((tab) => (
+            {['dashboard', 'temples', 'bookings', 'support'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -293,7 +358,7 @@ const AdminDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors`}
               >
-                {tab === 'dashboard' ? '📊 Dashboard' : tab === 'temples' ? '🛕 Manage Temples' : '🎟️ All Bookings'}
+                {tab === 'dashboard' ? '📊 Dashboard' : tab === 'temples' ? '🛕 Manage Temples' : tab === 'bookings' ? '🎟️ All Bookings' : '💬 Support & Contact Inquiries'}
               </button>
             ))}
           </nav>
@@ -439,6 +504,68 @@ const AdminDashboard = () => {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'support' && (
+          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
+             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Support Desk & Contact Inquiries</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Total {supportTickets.length} devotee inquiries received</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-900/50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Devotee Details</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject & Message</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Status Action</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {supportTickets.map((t) => (
+                    <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-bold text-orange-600 dark:text-orange-400">
+                        {t.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <p className="font-semibold text-gray-900 dark:text-white">{t.name}</p>
+                        <p className="text-xs text-gray-500">{t.phone} • {t.email}</p>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300">
+                          {t.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-xs">
+                        <p className="font-bold text-gray-900 dark:text-white truncate">{t.subject}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{t.message}</p>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
+                        {t.date}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <button
+                          onClick={() => handleToggleTicketStatus(t.id)}
+                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
+                            t.status === 'Resolved'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 hover:bg-green-200'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 hover:bg-amber-200'
+                          }`}
+                        >
+                          {t.status === 'Resolved' ? '✓ Resolved' : '⏳ Mark Resolved'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
