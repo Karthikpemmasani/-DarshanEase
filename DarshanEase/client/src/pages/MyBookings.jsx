@@ -73,17 +73,27 @@ const MyBookings = () => {
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{booking.templeId?.location}</p>
                   
-                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/40 p-3 rounded-xl">
                     <div className="flex justify-between">
-                      <span className="font-medium">Ticket:</span>
-                      <span>{booking.ticketNumber}</span>
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Devotee:</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{booking.name || user?.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">Date:</span>
-                      <span>{new Date(booking.date).toLocaleDateString()}</span>
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Aadhar (Last 4):</span>
+                      <span className="font-mono font-bold text-gray-900 dark:text-white">
+                        XXXX-XXXX-{booking.aadharNumber ? booking.aadharNumber.slice(-4) : 'XXXX'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">Slot:</span>
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Ticket No:</span>
+                      <span className="font-mono text-gray-900 dark:text-white">{booking.ticketNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Date:</span>
+                      <span>{new Date(booking.date).toLocaleDateString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Time Slot:</span>
                       <span>{booking.slot}</span>
                     </div>
                   </div>
