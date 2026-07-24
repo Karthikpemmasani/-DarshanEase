@@ -69,23 +69,37 @@ const Navbar = () => {
 
             {user ? (
               <div className="relative group">
-                <button className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-primary-600">
-                  <UserIcon className="h-5 w-5" />
+                <button className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-orange-600 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-500 transition-all">
+                  <UserIcon className="h-4 w-4 text-orange-600" />
                   <span>{user.name}</span>
-                </button>
-                <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</Link>
-                  <Link to="/my-bookings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">My Bookings</Link>
                   {user.role === 'admin' && (
-                    <Link to="/admin" className="block px-4 py-2 text-sm text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-700">Admin Dashboard</Link>
+                    <span className="text-[10px] uppercase font-extrabold bg-orange-600 text-white px-1.5 py-0.5 rounded">Admin</span>
                   )}
-                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">Logout</button>
+                </button>
+
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 w-52 mt-2 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">Profile</Link>
+                  <Link to="/my-bookings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">My Bookings</Link>
+                  
+                  {user.role === 'admin' ? (
+                    <Link to="/admin" className="block px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-gray-700">
+                      🛡️ Admin Dashboard
+                    </Link>
+                  ) : (
+                    <Link to="/login" className="block px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">
+                      🛡️ Admin Login
+                    </Link>
+                  )}
+                  
+                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 font-medium border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">Logout</button>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 font-medium transition-colors">Login</Link>
-                <Link to="/register" className="px-4 py-2 rounded-md bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg">Register</Link>
+              <div className="flex items-center space-x-3">
+                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 font-medium text-sm transition-colors">Login</Link>
+                <Link to="/login" className="px-3 py-1.5 rounded-lg border border-orange-500 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-50 dark:hover:bg-gray-800 transition-colors">Admin Login</Link>
+                <Link to="/register" className="px-4 py-2 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg">Register</Link>
               </div>
             )}
           </div>
@@ -106,7 +120,7 @@ const Navbar = () => {
         <div className="md:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (
-              <Link key={link.name} to={link.path} onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+              <Link key={link.name} to={link.path} onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800">
                 {link.name}
               </Link>
             ))}
@@ -114,15 +128,18 @@ const Navbar = () => {
               <>
                 <Link to="/profile" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Profile</Link>
                 <Link to="/my-bookings" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">My Bookings</Link>
-                {user.role === 'admin' && (
-                  <Link to="/admin" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-primary-600 hover:bg-gray-50 dark:hover:bg-gray-800">Admin Dashboard</Link>
+                {user.role === 'admin' ? (
+                  <Link to="/admin" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-bold text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800">🛡️ Admin Dashboard</Link>
+                ) : (
+                  <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-bold text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800">🛡️ Admin Login</Link>
                 )}
                 <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-50 dark:hover:bg-gray-800">Logout</button>
               </>
             ) : (
               <>
                 <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Login</Link>
-                <Link to="/register" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-primary-600 hover:bg-gray-50 dark:hover:bg-gray-800">Register</Link>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-bold text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800">Admin Login</Link>
+                <Link to="/register" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800">Register</Link>
               </>
             )}
           </div>
