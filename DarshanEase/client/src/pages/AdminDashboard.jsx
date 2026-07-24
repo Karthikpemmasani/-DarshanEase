@@ -71,34 +71,47 @@ const AdminDashboard = () => {
   };
 
   const fetchBookings = async () => {
-    let list = [];
+    let apiList = [];
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token || 'admin_session_token_darshanease_2026'}` } };
       const { data } = await axios.get('/api/bookings/admin', config);
       if (Array.isArray(data) && data.length > 0) {
-        list = data;
+        apiList = data;
       }
     } catch (error) {
       try {
         const config = { headers: { Authorization: `Bearer ${user?.token || 'admin_session_token_darshanease_2026'}` } };
         const { data } = await axios.get('/api/bookings', config);
         if (Array.isArray(data) && data.length > 0) {
-          list = data;
+          apiList = data;
         }
       } catch (err2) {
         console.log('Bookings fallback:', err2);
       }
     }
 
-    if (list.length === 0) {
-      list = sampleBookings;
+    let localAll = [];
+    let localMy = [];
+    try {
+      localAll = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+      localMy = JSON.parse(localStorage.getItem('my_darshan_bookings') || '[]');
+    } catch (e) {
+      console.log('local storage error');
     }
 
-    setBookings(list);
+    const mergedMap = new Map();
+    [...apiList, ...localAll, ...localMy, ...sampleBookings].forEach((b) => {
+      if (b && b._id) {
+        mergedMap.set(b._id.toString(), b);
+      }
+    });
+
+    const finalBookings = Array.from(mergedMap.values());
+    setBookings(finalBookings);
     setStats((prev) => ({
       usersCount: prev.usersCount || 15,
       templesCount: prev.templesCount || 10,
-      bookingsCount: list.length,
+      bookingsCount: finalBookings.length,
     }));
   };
 
