@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import TempleCard from '../components/TempleCard';
 import Loader from '../components/Loader';
-import { Search, Filter, Plus, X } from 'lucide-react';
+import { Search, Filter, Plus, X, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { AuthContext } from '../context/AuthContext';
 
 const TempleList = () => {
+  const { user } = useContext(AuthContext);
   const [temples, setTemples] = useState([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState('');
@@ -90,12 +92,16 @@ const TempleList = () => {
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Explore Temples</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Discover and book darshan slots across India</p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-medium px-5 py-2.5 rounded-lg shadow transition duration-200"
-          >
-            <Plus className="w-5 h-5" /> Add New Temple
-          </button>
+
+          {/* Add Temple Option - Exclusively for Admin */}
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-medium px-5 py-2.5 rounded-xl shadow-lg transition duration-200"
+            >
+              <Plus className="w-5 h-5" /> Add New Temple (Admin)
+            </button>
+          )}
         </div>
 
         {/* Search and Filter Section */}

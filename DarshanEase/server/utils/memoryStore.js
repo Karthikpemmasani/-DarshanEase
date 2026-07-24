@@ -102,7 +102,18 @@ const initialTemples = [
 class MemoryStore {
   constructor() {
     this.temples = [...initialTemples];
-    this.users = [];
+    this.users = [
+      {
+        _id: 'usr_admin_001',
+        name: 'System Admin',
+        email: 'admin@darshanease.com',
+        password: bcrypt.hashSync('admin123', 10),
+        phone: '9876543210',
+        role: 'admin',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
     this.bookings = [];
   }
 
@@ -232,6 +243,12 @@ class MemoryStore {
   cancelBooking(id, userId, userRole) {
     const booking = this.bookings.find(b => b._id.toString() === id.toString());
     if (booking) {
+      const bookingDate = new Date(booking.date);
+      bookingDate.setHours(23, 59, 59, 999);
+      if (bookingDate < new Date()) {
+        return { error: 'Expired ticket' };
+      }
+
       const ownerId = (booking.userId._id || booking.userId).toString();
       if (ownerId !== userId.toString() && userRole !== 'admin') {
         return { error: 'Not authorized' };

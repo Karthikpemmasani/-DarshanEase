@@ -62,53 +62,72 @@ const MyBookings = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookings.map((booking) => (
-              <div key={booking._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover-lift border border-gray-100 dark:border-gray-700 flex flex-col">
-                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-white ${booking.status === 'completed' ? 'bg-green-500' : booking.status === 'cancelled' ? 'bg-red-500' : 'bg-primary-500'}`}>
-                  {booking.status}
-                </div>
-                <div className="p-5 flex-grow">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">
-                    {booking.templeId?.name || 'Temple Removed'}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{booking.templeId?.location}</p>
-                  
-                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/40 p-3 rounded-xl">
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Devotee:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">{booking.name || user?.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Aadhar (Last 4):</span>
-                      <span className="font-mono font-bold text-gray-900 dark:text-white">
-                        XXXX-XXXX-{booking.aadharNumber ? booking.aadharNumber.slice(-4) : 'XXXX'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Ticket No:</span>
-                      <span className="font-mono text-gray-900 dark:text-white">{booking.ticketNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Date:</span>
-                      <span>{new Date(booking.date).toLocaleDateString('en-IN')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Time Slot:</span>
-                      <span>{booking.slot}</span>
-                    </div>
+            {bookings.map((booking) => {
+              const bookingDate = new Date(booking.date);
+              bookingDate.setHours(23, 59, 59, 999);
+              const isExpired = bookingDate < new Date();
+              const displayStatus = isExpired && booking.status === 'booked' ? 'EXPIRED' : booking.status;
+
+              return (
+                <div key={booking._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden hover-lift border border-gray-100 dark:border-gray-700 flex flex-col">
+                  <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-white ${
+                    displayStatus === 'completed' ? 'bg-green-600' :
+                    displayStatus === 'cancelled' ? 'bg-red-500' :
+                    displayStatus === 'EXPIRED' ? 'bg-gray-500' :
+                    'bg-orange-600'
+                  }`}>
+                    {displayStatus}
                   </div>
                   
-                  {booking.status === 'booked' && (
-                    <button 
-                      onClick={() => handleCancel(booking._id)}
-                      className="w-full mt-auto flex items-center justify-center px-4 py-2 border border-red-300 dark:border-red-800 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" /> Cancel Booking
-                    </button>
-                  )}
+                  <div className="p-5 flex-grow flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">
+                        {booking.templeId?.name || 'Temple Reserved'}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">📍 {booking.templeId?.location}</p>
+                      
+                      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/40 p-3.5 rounded-xl">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-500 dark:text-gray-400">Devotee:</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{booking.name || user?.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-500 dark:text-gray-400">Aadhar (Last 4):</span>
+                          <span className="font-mono font-bold text-gray-900 dark:text-white">
+                            XXXX-XXXX-{booking.aadharNumber ? booking.aadharNumber.slice(-4) : 'XXXX'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-500 dark:text-gray-400">Ticket No:</span>
+                          <span className="font-mono text-gray-900 dark:text-white">{booking.ticketNumber}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-500 dark:text-gray-400">Visit Date:</span>
+                          <span>{new Date(booking.date).toLocaleDateString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-500 dark:text-gray-400">Time Slot:</span>
+                          <span>{booking.slot}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {displayStatus === 'booked' && !isExpired ? (
+                      <button 
+                        onClick={() => handleCancel(booking._id)}
+                        className="w-full flex items-center justify-center px-4 py-2.5 border border-red-300 dark:border-red-800 text-sm font-semibold rounded-xl text-red-700 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" /> Cancel Booking
+                      </button>
+                    ) : displayStatus === 'EXPIRED' ? (
+                      <div className="w-full text-center py-2 px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 rounded-xl">
+                        Ticket Expired (Past Date)
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

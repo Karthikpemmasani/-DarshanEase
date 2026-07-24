@@ -100,6 +100,12 @@ const cancelBooking = async (req, res) => {
     try {
       const booking = await Booking.findById(req.params.id);
       if (booking) {
+        const bookingDate = new Date(booking.date);
+        bookingDate.setHours(23, 59, 59, 999);
+        if (bookingDate < new Date()) {
+          return res.status(400).json({ message: 'Expired ticket for past date cannot be cancelled' });
+        }
+
         if (booking.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
           return res.status(401).json({ message: 'User not authorized' });
         }
@@ -121,6 +127,8 @@ const cancelBooking = async (req, res) => {
   const result = memoryStore.cancelBooking(req.params.id, req.user._id, req.user.role);
   if (result.success) {
     res.json({ message: 'Booking cancelled successfully' });
+  } else if (result.error === 'Expired ticket') {
+    res.status(400).json({ message: 'Expired ticket for past date cannot be cancelled' });
   } else if (result.error === 'Not authorized') {
     res.status(401).json({ message: 'User not authorized' });
   } else {
