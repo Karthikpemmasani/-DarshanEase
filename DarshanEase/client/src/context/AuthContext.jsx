@@ -52,13 +52,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginAdmin = async (adminId, password, securityPin) => {
+    const validIds = ['ADMIN-DARSHAN-2026', 'admin@darshanease.com', 'admin'];
+    const validPasswords = ['Admin@2026', 'admin123'];
+    const validPins = ['7777', '9999', '8888'];
+
+    const normalizedId = (adminId || '').trim();
+    const normalizedPass = (password || '').trim();
+    const normalizedPin = (securityPin || '').trim();
+
+    if (
+      (validIds.includes(normalizedId) || validIds.includes(normalizedId.toUpperCase())) &&
+      validPasswords.includes(normalizedPass) &&
+      validPins.includes(normalizedPin)
+    ) {
+      const adminData = {
+        _id: 'usr_admin_001',
+        name: 'System Admin',
+        email: 'admin@darshanease.com',
+        phone: '9876543210',
+        role: 'admin',
+        token: 'admin_session_token_darshanease_2026',
+      };
+      setUser(adminData);
+      localStorage.setItem('userInfo', JSON.stringify(adminData));
+      return { success: true };
+    } else {
+      return { success: false, message: 'Invalid Admin ID, Password, or Security PIN' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('userInfo');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, loginAdmin, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

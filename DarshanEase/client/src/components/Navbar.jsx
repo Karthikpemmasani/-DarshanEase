@@ -87,8 +87,8 @@ const Navbar = () => {
                       🛡️ Admin Dashboard
                     </Link>
                   ) : (
-                    <Link to="/login" className="block px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">
-                      🛡️ Admin Login
+                    <Link to="/admin-login" className="block px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">
+                      🛡️ Admin Portal Login
                     </Link>
                   )}
                   
@@ -98,7 +98,7 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-3">
                 <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 font-medium text-sm transition-colors">Login</Link>
-                <Link to="/login" className="px-3 py-1.5 rounded-lg border border-orange-500 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-50 dark:hover:bg-gray-800 transition-colors">Admin Login</Link>
+                <Link to="/admin-login" className="px-3 py-1.5 rounded-lg border border-orange-500 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-50 dark:hover:bg-gray-800 transition-colors">Admin Login</Link>
                 <Link to="/register" className="px-4 py-2 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg">Register</Link>
               </div>
             )}

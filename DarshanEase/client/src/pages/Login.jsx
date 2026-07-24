@@ -48,23 +48,17 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10 border border-gray-100 dark:border-gray-700 backdrop-blur-sm space-y-6">
           
-          {/* Admin Demo Credentials Box */}
-          <div className="bg-orange-50 dark:bg-gray-700/50 border border-orange-200 dark:border-gray-600 p-4 rounded-xl flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-800 dark:text-orange-300 flex items-center gap-1">
-                <Shield className="w-3.5 h-3.5" /> Admin Account Credentials
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-300 font-mono mt-0.5">
-                admin@darshanease.com | admin123
-              </p>
+          <div className="bg-orange-50/60 dark:bg-gray-700/40 border border-orange-100 dark:border-gray-700 p-3.5 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              <Shield className="w-4 h-4 text-orange-600" />
+              <span>Temple Board Admin?</span>
             </div>
-            <button
-              type="button"
-              onClick={fillAdminCredentials}
-              className="text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 px-3 py-1.5 rounded-lg shadow transition-colors"
+            <Link
+              to="/admin-login"
+              className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline"
             >
-              Fill Admin
-            </button>
+              Admin Portal Login &rarr;
+            </Link>
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
