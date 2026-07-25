@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import TempleCard from '../components/TempleCard';
 import Loader from '../components/Loader';
-import { Search, Filter, Plus, X, ShieldCheck } from 'lucide-react';
+import { Search, Filter, Plus, X, ShieldCheck, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 
@@ -14,6 +14,8 @@ const TempleList = () => {
   const [stateFilter, setStateFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,6 +34,20 @@ const TempleList = () => {
     'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 
     'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
   ];
+
+  const loadFavorites = () => {
+    try {
+      const favs = JSON.parse(localStorage.getItem('darshanease_favorite_temples') || '[]');
+      const ids = favs.map((f) => (typeof f === 'string' ? f : f._id));
+      setFavoriteIds(ids);
+    } catch (e) {
+      setFavoriteIds([]);
+    }
+  };
+
+  useEffect(() => {
+    loadFavorites();
+  }, []);
 
   const handleImageFileUpload = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -69,6 +85,13 @@ const TempleList = () => {
     e.preventDefault();
     fetchTemples();
   };
+
+  const displayedTemples = temples.filter((t) => {
+    if (showFavoritesOnly) {
+      return favoriteIds.includes(t._id);
+    }
+    return true;
+  });
 
   const handleAddTempleSubmit = async (e) => {
     e.preventDefault();
@@ -121,7 +144,7 @@ const TempleList = () => {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between border border-gray-100 dark:border-gray-700 mb-8">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between border border-gray-100 dark:border-gray-700 mb-8">
           <form onSubmit={handleSearch} className="relative w-full md:w-1/2">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
@@ -131,43 +154,79 @@ const TempleList = () => {
               placeholder="Search temples by name..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-colors"
             />
             <button type="submit" className="hidden">Search</button>
           </form>
           
-          <div className="w-full md:w-64 flex items-center gap-2">
-            <Filter className="h-5 w-5 text-gray-400" />
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+          <div className="w-full md:w-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                loadFavorites();
+                setShowFavoritesOnly(!showFavoritesOnly);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow ${
+                showFavoritesOnly
+                  ? 'bg-red-500 text-white shadow-red-500/20'
+                  : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-gray-600'
+              }`}
             >
-              <option value="">All States</option>
-              {indianStates.map((state) => (
-                <option key={state} value={state}>{state}</option>
-              ))}
-            </select>
+              <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-white' : 'text-red-500 fill-red-500'}`} />
+              {showFavoritesOnly ? 'Showing Favorites ❤️' : 'Favorites ❤️'}
+            </button>
+
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-gray-400" />
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                className="block w-full pl-3 pr-8 py-2 text-base border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors text-xs font-semibold"
+              >
+                <option value="">All States</option>
+                {indianStates.map((state) => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
         {loading ? (
           <Loader />
-        ) : temples.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-8 shadow-sm">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">No temples found</h3>
-            <p className="mt-2 text-gray-500 dark:text-gray-400 mb-6">Click below to add the first temple to the system!</p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-medium px-5 py-2.5 rounded-lg shadow"
-            >
-              <Plus className="w-5 h-5" /> Add Temple Now
-            </button>
+        ) : displayedTemples.length === 0 ? (
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-8 shadow-md">
+            <Heart className="w-16 h-16 mx-auto text-red-400 dark:text-red-500 mb-4 animate-bounce" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              {showFavoritesOnly ? 'No Favorite Temples Saved Yet' : 'No temples found'}
+            </h3>
+            <p className="mt-2 text-gray-500 dark:text-gray-400 mb-6 text-sm max-w-md mx-auto">
+              {showFavoritesOnly
+                ? 'Click the ❤️ heart icon on any temple card to bookmark it to your personal favorites list for quick access!'
+                : 'Click below to add the first temple to the system!'}
+            </p>
+            {showFavoritesOnly ? (
+              <button
+                onClick={() => setShowFavoritesOnly(false)}
+                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2.5 rounded-xl shadow"
+              >
+                Browse All Temples
+              </button>
+            ) : (
+              user?.role === 'admin' && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2.5 rounded-xl shadow"
+                >
+                  <Plus className="w-5 h-5" /> Add Temple Now
+                </button>
+              )
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {temples.map((temple) => (
-              <TempleCard key={temple._id} temple={temple} />
+            {displayedTemples.map((temple) => (
+              <TempleCard key={temple._id} temple={temple} onFavoriteToggle={loadFavorites} />
             ))}
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Sun, Moon, User as UserIcon } from 'lucide-react';
+import { Menu, X, Sun, Moon, User as UserIcon, Heart, Shield } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -50,7 +50,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700">
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-600">
                 DarshanEase
               </span>
             </Link>
@@ -58,7 +58,7 @@ const Navbar = () => {
           
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link key={link.name} to={link.path} className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">
+              <Link key={link.name} to={link.path} className="text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 font-medium transition-colors">
                 {link.name}
               </Link>
             ))}
@@ -69,8 +69,12 @@ const Navbar = () => {
 
             {user ? (
               <div className="relative group">
-                <button className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-orange-600 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-500 transition-all">
-                  <UserIcon className="h-4 w-4 text-orange-600" />
+                <button className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-orange-600 font-semibold px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-orange-500 transition-all">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-5 h-5 rounded-full object-cover border border-orange-500" />
+                  ) : (
+                    <UserIcon className="h-4 w-4 text-orange-600" />
+                  )}
                   <span>{user.name}</span>
                   {user.role === 'admin' && (
                     <span className="text-[10px] uppercase font-extrabold bg-orange-600 text-white px-1.5 py-0.5 rounded">Admin</span>
@@ -78,12 +82,13 @@ const Navbar = () => {
                 </button>
 
                 {/* Dropdown Menu */}
-                <div className="absolute right-0 w-52 mt-2 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">Profile</Link>
-                  <Link to="/my-bookings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">My Bookings</Link>
+                <div className="absolute right-0 w-56 mt-2 py-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">👤 Profile</Link>
+                  <Link to="/my-bookings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium">🎟️ My Bookings</Link>
+                  <Link to="/temples" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-gray-700 font-medium flex items-center gap-1.5">❤️ Favorite Temples</Link>
                   
                   {user.role === 'admin' ? (
-                    <Link to="/admin" className="block px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-gray-700">
+                    <Link to="/admin" className="block px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">
                       🛡️ Admin Dashboard
                     </Link>
                   ) : (
@@ -92,13 +97,15 @@ const Navbar = () => {
                     </Link>
                   )}
                   
-                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 font-medium border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">Logout</button>
+                  <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 font-medium border-t border-gray-100 dark:border-gray-700/50 mt-1 pt-2">🚪 Logout</button>
                 </div>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
                 <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 font-medium text-sm transition-colors">Login</Link>
-                <Link to="/admin-login" className="px-3 py-1.5 rounded-lg border border-orange-500 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-50 dark:hover:bg-gray-800 transition-colors">Admin Login</Link>
+                <Link to="/admin-login" className="px-3 py-1.5 rounded-xl border border-orange-500 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+                  <Shield className="w-3.5 h-3.5" /> Admin Login
+                </Link>
                 <Link to="/register" className="px-4 py-2 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg">Register</Link>
               </div>
             )}

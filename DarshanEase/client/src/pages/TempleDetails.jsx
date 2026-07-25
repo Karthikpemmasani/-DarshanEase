@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Loader from '../components/Loader';
-import { MapPin, Calendar, Clock, Info } from 'lucide-react';
+import { MapPin, Calendar, Clock, Info, Heart, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 
@@ -12,12 +12,16 @@ const TempleDetails = () => {
   const { user } = useContext(AuthContext);
   const [temple, setTemple] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchTemple = async () => {
       try {
         const { data } = await axios.get(`/api/temples/${id}`);
         setTemple(data);
+        const favs = JSON.parse(localStorage.getItem('darshanease_favorite_temples') || '[]');
+        const exists = favs.some((f) => (typeof f === 'string' ? f === data._id : f._id === data._id));
+        setIsFavorite(exists);
       } catch (error) {
         toast.error('Failed to load temple details');
       } finally {
@@ -26,6 +30,27 @@ const TempleDetails = () => {
     };
     fetchTemple();
   }, [id]);
+
+  const handleToggleFavorite = () => {
+    if (!temple) return;
+    try {
+      const favs = JSON.parse(localStorage.getItem('darshanease_favorite_temples') || '[]');
+      const exists = favs.some((f) => (typeof f === 'string' ? f === temple._id : f._id === temple._id));
+      let updated = [];
+      if (exists) {
+        updated = favs.filter((f) => (typeof f === 'string' ? f !== temple._id : f._id !== temple._id));
+        toast('Removed from Favorites', { icon: '💔' });
+        setIsFavorite(false);
+      } else {
+        updated = [temple, ...favs];
+        toast.success(`${temple.name} added to Favorites! ❤️`);
+        setIsFavorite(true);
+      }
+      localStorage.setItem('darshanease_favorite_temples', JSON.stringify(updated));
+    } catch (e) {
+      toast.error('Could not update favorites');
+    }
+  };
 
   if (loading) return <Loader />;
   if (!temple) return <div className="text-center py-20 text-xl dark:text-white">Temple not found</div>;
@@ -41,18 +66,32 @@ const TempleDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
+      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
         <div className="relative h-96">
           <img 
-            src={temple.image || 'https://via.placeholder.com/1200x600?text=Temple'} 
+            src={temple.image || 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'} 
             alt={temple.name} 
             className="w-full h-full object-cover"
+            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'; }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+          
+          {/* Favorite Button */}
+          <button
+            onClick={handleToggleFavorite}
+            className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md text-xs font-bold text-gray-800 dark:text-white hover:scale-105 transition-all shadow-xl"
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-600 dark:text-gray-300'}`} />
+            {isFavorite ? 'Favorited ❤️' : 'Add to Favorites'}
+          </button>
+
           <div className="absolute bottom-0 left-0 p-8 w-full text-white">
+            <span className="text-xs font-bold uppercase tracking-wider bg-orange-600/90 backdrop-blur-md px-3 py-1 rounded-full mb-3 inline-block">
+              {temple.state}
+            </span>
             <h1 className="text-4xl font-extrabold mb-2">{temple.name}</h1>
             <div className="flex items-center text-lg text-gray-200">
-              <MapPin className="h-5 w-5 mr-2" />
+              <MapPin className="h-5 w-5 mr-2 text-orange-400" />
               {temple.location}, {temple.state}
             </div>
           </div>
