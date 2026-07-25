@@ -3,8 +3,9 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
-import { Users, Building, Ticket, Plus, Trash2, Edit } from 'lucide-react';
-import { fetchCloudBookings } from '../utils/cloudStore';
+import { Users, Building, Ticket, Plus, Trash2, Edit, Search, Download, Eye, CheckCircle, XCircle, RefreshCw, X, ShieldCheck } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { fetchCloudBookings, updateCloudBookingStatus } from '../utils/cloudStore';
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -14,6 +15,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, temples, bookings, support
   const [bookingStatusFilter, setBookingStatusFilter] = useState('all'); // all, booked, completed, cancelled
+  const [bookingSearchQuery, setBookingSearchQuery] = useState('');
+  const [selectedPassBooking, setSelectedPassBooking] = useState(null);
 
   const sampleBookings = [
     {
@@ -131,6 +134,44 @@ const AdminDashboard = () => {
     if (b.status === 'cancelled') return 'cancelled';
     if (b.status === 'completed' || isBookingCompleted(b.date, b.slot)) return 'completed';
     return 'booked';
+  };
+
+  const handleUpdateBookingStatus = async (booking, newStatus) => {
+    const ticketNo = booking.ticketNumber;
+    const bId = booking._id;
+
+    setBookings((prev) =>
+      prev.map((b) => (b.ticketNumber === ticketNo || b._id === bId ? { ...b, status: newStatus } : b))
+    );
+
+    try {
+      await updateCloudBookingStatus(bId, ticketNo, newStatus);
+    } catch (e) {}
+
+    toast.success(`Booking ${ticketNo || 'ticket'} status updated to ${newStatus.toUpperCase()}`);
+  };
+
+  const handleExportCSV = () => {
+    if (!bookings.length) return toast.error('No bookings available to export');
+    const headers = ['Ticket Number', 'Devotee Name', 'Aadhar (Last 4)', 'Temple Name', 'Visit Date', 'Time Slot', 'Status'];
+    const rows = bookings.map((b) => [
+      b.ticketNumber || '',
+      `"${resolveDevoteeName(b)}"`,
+      `"XXXX-XXXX-${resolveAadharLast4(b)}"`,
+      `"${resolveTempleName(b)}"`,
+      new Date(b.date).toLocaleDateString('en-IN'),
+      `"${b.slot || ''}"`,
+      getBookingComputedStatus(b).toUpperCase(),
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `DarshanEase_Devotees_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('CSV Report exported successfully!');
   };
 
   const fetchBookings = async () => {
@@ -520,43 +561,75 @@ const AdminDashboard = () => {
 
         {activeTab === 'bookings' && (
           <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
-             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">All Devotee Bookings</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Total {bookings.length} reservations across all temples</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Total {bookings.length} reservations synced across all devices</p>
               </div>
-              <button
-                onClick={() => {
-                  fetchBookings();
-                  toast.success('Bookings list refreshed!');
-                }}
-                className="px-4 py-2 bg-orange-50 dark:bg-gray-700 text-orange-600 dark:text-orange-300 hover:bg-orange-100 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors self-start md:self-auto shadow-sm"
-              >
-                🔄 Refresh Bookings
-              </button>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  onClick={async () => {
+                    setLoading(true);
+                    await fetchBookings();
+                    setLoading(false);
+                    toast.success('Cross-device bookings synced & refreshed!');
+                  }}
+                  className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-md"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> ☁️ Sync Cloud Bookings
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  className="px-3.5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-md"
+                >
+                  <Download className="w-3.5 h-3.5" /> 📥 Export CSV
+                </button>
+              </div>
             </div>
 
-            {/* Status Filter Tabs */}
-            <div className="px-6 py-3 bg-gray-50/70 dark:bg-gray-900/40 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold text-gray-500 uppercase mr-1">Filter By Status:</span>
-              {[
-                { id: 'all', label: 'All Bookings 📋' },
-                { id: 'booked', label: 'Active Booked 🎟️' },
-                { id: 'completed', label: 'Completed Darshans ✅' },
-                { id: 'cancelled', label: 'Cancelled Tickets ❌' },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => setBookingStatusFilter(f.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    bookingStatusFilter === f.id
-                      ? 'bg-orange-600 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-orange-50'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+            {/* Filter & Search Toolbar */}
+            <div className="p-4 bg-gray-50/80 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+                <span className="text-xs font-bold text-gray-500 uppercase mr-1">Status:</span>
+                {[
+                  { id: 'all', label: 'All 📋' },
+                  { id: 'booked', label: 'Active Booked 🎟️' },
+                  { id: 'completed', label: 'Completed ✅' },
+                  { id: 'cancelled', label: 'Cancelled ❌' },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setBookingStatusFilter(f.id)}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                      bookingStatusFilter === f.id
+                        ? 'bg-orange-600 text-white shadow-sm'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-orange-50'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Live Search Input */}
+              <div className="relative w-full md:w-72">
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search Devotee, Ticket No, Aadhar..."
+                  value={bookingSearchQuery}
+                  onChange={(e) => setBookingSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-1.5 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white"
+                />
+                {bookingSearchQuery && (
+                  <button
+                    onClick={() => setBookingSearchQuery('')}
+                    className="absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -569,14 +642,23 @@ const AdminDashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Temple Name</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Visit Date & Slot</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {bookings
                     .filter((b) => {
                       const computedStatus = getBookingComputedStatus(b);
-                      if (bookingStatusFilter === 'all') return true;
-                      return computedStatus === bookingStatusFilter;
+                      if (bookingStatusFilter !== 'all' && computedStatus !== bookingStatusFilter) return false;
+                      if (!bookingSearchQuery.trim()) return true;
+
+                      const q = bookingSearchQuery.toLowerCase();
+                      const devName = resolveDevoteeName(b).toLowerCase();
+                      const tktNo = (b.ticketNumber || '').toLowerCase();
+                      const templeName = resolveTempleName(b).toLowerCase();
+                      const last4 = resolveAadharLast4(b);
+
+                      return devName.includes(q) || tktNo.includes(q) || templeName.includes(q) || last4.includes(q);
                     })
                     .map((booking, idx) => {
                       const computedStatus = getBookingComputedStatus(booking);
@@ -612,6 +694,33 @@ const AdminDashboard = () => {
                             }`}>
                               {displayStatus}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-semibold space-x-1">
+                            <button
+                              onClick={() => setSelectedPassBooking(booking)}
+                              className="px-2.5 py-1 bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400 hover:bg-blue-100 rounded-lg transition-colors"
+                              title="View Ticket Pass"
+                            >
+                              👁️ Pass
+                            </button>
+                            {displayStatus !== 'COMPLETED' && (
+                              <button
+                                onClick={() => handleUpdateBookingStatus(booking, 'completed')}
+                                className="px-2 py-1 bg-green-50 dark:bg-gray-700 text-green-600 dark:text-green-400 hover:bg-green-100 rounded-lg transition-colors"
+                                title="Mark as Completed"
+                              >
+                                ✅ Complete
+                              </button>
+                            )}
+                            {displayStatus !== 'CANCELLED' && (
+                              <button
+                                onClick={() => handleUpdateBookingStatus(booking, 'cancelled')}
+                                className="px-2 py-1 bg-red-50 dark:bg-gray-700 text-red-600 dark:text-red-400 hover:bg-red-100 rounded-lg transition-colors"
+                                title="Cancel Booking"
+                              >
+                                ❌ Cancel
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
@@ -834,6 +943,72 @@ const AdminDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Digital Ticket Pass Modal */}
+      {selectedPassBooking && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 dark:border-gray-700 relative animate-fadeIn">
+            <button
+              onClick={() => setSelectedPassBooking(null)}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-white rounded-full bg-gray-100 dark:bg-gray-700 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center mb-4">
+              <span className="inline-block px-3 py-1 bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
+                Devotee Official Ticket Pass
+              </span>
+              <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate">
+                {resolveTempleName(selectedPassBooking)}
+              </h3>
+            </div>
+
+            <div className="space-y-2.5 text-xs bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 mb-5">
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400 font-medium">Devotee Name:</span>
+                <span className="font-bold text-gray-900 dark:text-white">{resolveDevoteeName(selectedPassBooking)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400 font-medium">Aadhar (Last 4):</span>
+                <span className="font-mono font-bold text-gray-900 dark:text-white">XXXX-XXXX-{resolveAadharLast4(selectedPassBooking)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400 font-medium">Ticket No:</span>
+                <span className="font-mono font-bold text-orange-600 dark:text-orange-400">{selectedPassBooking.ticketNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400 font-medium">Visit Date:</span>
+                <span className="font-semibold">{new Date(selectedPassBooking.date).toLocaleDateString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400 font-medium">Time Slot:</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-200">{selectedPassBooking.slot}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-gray-600">
+                <span className="text-gray-500 dark:text-gray-400 font-medium">Status:</span>
+                <span className="font-extrabold uppercase text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> {getBookingComputedStatus(selectedPassBooking)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-center bg-white p-3 rounded-2xl shadow-inner border border-gray-200 mb-4">
+              <QRCodeSVG
+                value={`Ticket:${selectedPassBooking.ticketNumber}|Name:${resolveDevoteeName(selectedPassBooking)}|Aadhar:*${resolveAadharLast4(selectedPassBooking)}|Temple:${resolveTempleName(selectedPassBooking)}|Date:${selectedPassBooking.date}`}
+                size={130}
+              />
+            </div>
+            
+            <button
+              onClick={() => setSelectedPassBooking(null)}
+              className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs transition-colors shadow"
+            >
+              Close Pass Preview
+            </button>
           </div>
         </div>
       )}
