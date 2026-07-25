@@ -8,22 +8,28 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-4EA94B.svg)
 ![Deployment](https://img.shields.io/badge/Deployment-Vercel%20%2B%20Render-orange.svg)
 
-**DarshanEase** is a complete, production-ready MERN (MongoDB, Express, React, Node.js) application designed to streamline temple darshan slot bookings, digital ticket pass generation, and administrative temple management across India. It features a modern, responsive, and beautiful UI designed with Tailwind CSS, supporting dark mode, instant QR pass creation, and cross-device synchronization.
+**DarshanEase** is a complete, production-ready MERN (MongoDB, Express, React, Node.js) application designed to streamline temple darshan slot bookings, digital ticket pass generation, and administrative temple management across India. It features a modern, responsive UI designed with Tailwind CSS, supporting dark mode, instant QR pass creation, and cross-device synchronization.
+
+---
+
+## 🔑 Login Access Credentials
+
+> [!IMPORTANT]
+> Use any of the pre-configured credentials below to test Devotee booking or Admin Portal features:
+
+| Account Type | Email / User ID | Password | Access PIN / Privileges |
+| :--- | :--- | :--- | :--- |
+| **🛡️ Admin Access** | `admin@darshanease.com`<br/>*(or `ADMIN-DARSHAN-2026`)* | `admin123`<br/>*(or `Admin@2026`)* | **Security PIN: `7777`**<br/>*(Full Admin Dashboard, Token Edit, Devotee Sync)* |
+| **👤 Demo Devotee** | `devotee@darshanease.com` | `Devotee@123` | Devotee (Darshan Bookings & Digital Pass) |
+| **👤 Devotee Account** | `karthik@darshanease.com` | `User@123` | Devotee (Darshan Bookings & Digital Pass) |
 
 ---
 
 ## 🌐 Live Deployments & Admin Access
 
-> [!IMPORTANT]
-> You can test the platform live in your browser:
-> * **Frontend Application (Vercel)**: [https://darshan-ease-pied.vercel.app](https://darshan-ease-pied.vercel.app)
-> * **Backend API (Render)**: [https://darshanease-6lm4.onrender.com](https://darshanease-6lm4.onrender.com)
-> * **Admin Portal Access**: [https://darshan-ease-pied.vercel.app/admin](https://darshan-ease-pied.vercel.app/admin)
-
-### 🛡️ Pre-Configured Admin Login Credentials
-* **Admin Email / User ID**: `ADMIN-DARSHAN-2026` or `admin@darshanease.com`
-* **Admin Password**: `Admin@2026` or `admin123`
-* **Security Access PIN**: `7777`
+* **Frontend Application (Vercel)**: [https://darshan-ease-pied.vercel.app](https://darshan-ease-pied.vercel.app)
+* **Backend API (Render)**: [https://darshanease-6lm4.onrender.com](https://darshanease-6lm4.onrender.com)
+* **Admin Portal Login**: [https://darshan-ease-pied.vercel.app/admin](https://darshan-ease-pied.vercel.app/admin)
 
 ---
 
@@ -32,7 +38,7 @@
 ### 👤 Devotee Features:
 * 🔐 **Authentication & Security**: Register and login with JWT-backed authentication.
 * 🔍 **Temple Discovery & State Filters**: Search temples by name, location, or filter by Indian state.
-* ❤️ **Favorite Temples**: Save favorite temples (`❤️`) with one click and filter favorites.
+* ❤️ **Favorite Temples**: Save favorite temples (`❤️`) with one click and filter saved favorites.
 * 🎟️ **Instant Darshan Slot Booking**: Select visit date, time slot, enter devotee name and 12-digit Aadhar number.
 * 📲 **Digital QR Ticket Pass**: Instant digital pass generation with a unique ticket ID (`TKT-XXXXXX`) and scannable QR code.
 * 📥 **PDF Pass Download**: One-click PDF pass download formatted for printing or offline entry verification.
