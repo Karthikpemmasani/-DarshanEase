@@ -90,6 +90,48 @@ const AdminDashboard = () => {
     return num.length >= 4 ? num.slice(-4) : '4920';
   };
 
+  const isBookingCompleted = (dateStr, slotStr) => {
+    if (!dateStr) return false;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+    const bDate = new Date(dateStr);
+    const bDateStart = new Date(bDate.getFullYear(), bDate.getMonth(), bDate.getDate()).getTime();
+
+    if (bDateStart < todayStart) return true;
+
+    if (bDateStart === todayStart) {
+      if (slotStr && slotStr.includes('-')) {
+        const parts = slotStr.split('-');
+        const endTimeStr = parts[1]?.trim();
+        if (endTimeStr) {
+          const timeMatch = endTimeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+          if (timeMatch) {
+            let hours = parseInt(timeMatch[1], 10);
+            const minutes = parseInt(timeMatch[2], 10);
+            const ampm = timeMatch[3].toUpperCase();
+            if (ampm === 'PM' && hours < 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+
+            const slotEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes).getTime();
+            if (now.getTime() >= slotEndTime) {
+              return true;
+            }
+          }
+        }
+      }
+      if (now.getHours() >= 18) return true;
+    }
+
+    return false;
+  };
+
+  const getBookingComputedStatus = (b) => {
+    if (b.status === 'cancelled') return 'cancelled';
+    if (b.status === 'completed' || isBookingCompleted(b.date, b.slot)) return 'completed';
+    return 'booked';
+  };
+
   const fetchBookings = async () => {
     let apiList = [];
     try {
@@ -524,25 +566,13 @@ const AdminDashboard = () => {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {bookings
                     .filter((b) => {
-                      const isPastOrToday = new Date(b.date).setHours(23, 59, 59, 999) <= new Date();
-                      const computedStatus =
-                        b.status === 'cancelled'
-                          ? 'cancelled'
-                          : (b.status === 'completed' || isPastOrToday)
-                          ? 'completed'
-                          : 'booked';
-
+                      const computedStatus = getBookingComputedStatus(b);
                       if (bookingStatusFilter === 'all') return true;
                       return computedStatus === bookingStatusFilter;
                     })
                     .map((booking, idx) => {
-                      const isPastOrToday = new Date(booking.date).setHours(23, 59, 59, 999) <= new Date();
-                      const displayStatus =
-                        booking.status === 'cancelled'
-                          ? 'CANCELLED'
-                          : (booking.status === 'completed' || isPastOrToday)
-                          ? 'COMPLETED'
-                          : 'BOOKED';
+                      const computedStatus = getBookingComputedStatus(booking);
+                      const displayStatus = computedStatus.toUpperCase();
                       const devoteeName = resolveDevoteeName(booking);
                       const last4 = resolveAadharLast4(booking);
                       const templeName = resolveTempleName(booking);
