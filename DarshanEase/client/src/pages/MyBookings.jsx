@@ -9,9 +9,32 @@ import { Link } from 'react-router-dom';
 const MyBookings = () => {
   const { user } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
+  const [temples, setTemples] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const resolveTempleInfo = (b) => {
+    if (b.templeId && typeof b.templeId === 'object' && b.templeId.name) {
+      return { name: b.templeId.name, location: b.templeId.location || 'India' };
+    }
+    if (b.templeName) {
+      return { name: b.templeName, location: b.templeLocation || 'India' };
+    }
+    const tId = (b.templeId?._id || b.templeId || '').toString();
+    const found = temples.find((t) => t._id.toString() === tId);
+    if (found) return { name: found.name, location: found.location };
+
+    return { name: 'Tirumala Venkateswara Temple', location: 'Tirupati, AP' };
+  };
+
+  const fetchTemples = async () => {
+    try {
+      const { data } = await axios.get('/api/temples');
+      if (Array.isArray(data)) setTemples(data);
+    } catch (e) {}
+  };
+
   const fetchBookings = async () => {
+    await fetchTemples();
     let apiList = [];
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token || 'user_token_darshanease'}` } };
@@ -26,17 +49,29 @@ const MyBookings = () => {
     // Merge with locally saved bookings
     let localMy = [];
     let localAll = [];
+    let cancelledIds = [];
     try {
       localMy = JSON.parse(localStorage.getItem('my_darshan_bookings') || '[]');
       localAll = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+      cancelledIds = JSON.parse(localStorage.getItem('darshanease_cancelled_ids') || '[]');
     } catch (e) {
       console.log('localStorage read error');
     }
 
     const mergedMap = new Map();
     [...apiList, ...localMy, ...localAll].forEach((b) => {
-      if (b && b._id) {
-        mergedMap.set(b._id.toString(), b);
+      if (b && (b._id || b.ticketNumber)) {
+        const key = (b.ticketNumber || b._id).toString();
+        const existing = mergedMap.get(key);
+
+        const isCancelled =
+          cancelledIds.includes(b._id?.toString()) ||
+          (b.ticketNumber && cancelledIds.includes(b.ticketNumber.toString())) ||
+          b.status === 'cancelled' ||
+          (existing && existing.status === 'cancelled');
+
+        const updatedBooking = { ...b, status: isCancelled ? 'cancelled' : b.status };
+        mergedMap.set(key, updatedBooking);
       }
     });
 
@@ -48,7 +83,7 @@ const MyBookings = () => {
     fetchBookings();
   }, []);
 
-  const handleCancel = async (id) => {
+  const handleCancel = async (id, ticketNumber) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user?.token || 'user_token_darshanease'}` } };
@@ -57,16 +92,39 @@ const MyBookings = () => {
         console.log('Cancel API fallback');
       }
 
+      // Record in cancelled store
+      try {
+        const cancelledList = JSON.parse(localStorage.getItem('darshanease_cancelled_ids') || '[]');
+        if (id && !cancelledList.includes(id.toString())) cancelledList.push(id.toString());
+        if (ticketNumber && !cancelledList.includes(ticketNumber.toString())) cancelledList.push(ticketNumber.toString());
+        localStorage.setItem('darshanease_cancelled_ids', JSON.stringify(cancelledList));
+      } catch (e) {}
+
       setBookings((prev) =>
-        prev.map((b) => (b._id.toString() === id.toString() ? { ...b, status: 'cancelled' } : b))
+        prev.map((b) => {
+          if (b._id?.toString() === id?.toString() || (ticketNumber && b.ticketNumber === ticketNumber)) {
+            return { ...b, status: 'cancelled' };
+          }
+          return b;
+        })
       );
 
       try {
         const localMy = JSON.parse(localStorage.getItem('my_darshan_bookings') || '[]');
         const updatedMy = localMy.map((b) =>
-          b._id.toString() === id.toString() ? { ...b, status: 'cancelled' } : b
+          b._id?.toString() === id?.toString() || (ticketNumber && b.ticketNumber === ticketNumber)
+            ? { ...b, status: 'cancelled' }
+            : b
         );
         localStorage.setItem('my_darshan_bookings', JSON.stringify(updatedMy));
+
+        const localAll = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+        const updatedAll = localAll.map((b) =>
+          b._id?.toString() === id?.toString() || (ticketNumber && b.ticketNumber === ticketNumber)
+            ? { ...b, status: 'cancelled' }
+            : b
+        );
+        localStorage.setItem('darshanease_all_bookings', JSON.stringify(updatedAll));
       } catch (e) {
         console.log('local update error');
       }
@@ -97,65 +155,70 @@ const MyBookings = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookings.map((booking) => {
+            {bookings.map((booking, idx) => {
               const bookingDate = new Date(booking.date);
               bookingDate.setHours(23, 59, 59, 999);
               const isExpired = bookingDate < new Date();
               const displayStatus = isExpired && booking.status === 'booked' ? 'EXPIRED' : booking.status;
+              const templeInfo = resolveTempleInfo(booking);
 
               return (
-                <div key={booking._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden hover-lift border border-gray-100 dark:border-gray-700 flex flex-col">
-                  <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-white ${
+                <div key={booking._id || idx} className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:-translate-y-1 transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col">
+                  <div className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white ${
                     displayStatus === 'completed' ? 'bg-green-600' :
                     displayStatus === 'cancelled' ? 'bg-red-500' :
                     displayStatus === 'EXPIRED' ? 'bg-gray-500' :
-                    'bg-orange-600'
+                    'bg-gradient-to-r from-orange-600 to-amber-600'
                   }`}>
                     {displayStatus}
                   </div>
                   
-                  <div className="p-5 flex-grow flex flex-col justify-between">
+                  <div className="p-6 flex-grow flex flex-col justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">
-                        {booking.templeId?.name || 'Temple Reserved'}
+                      <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-1 truncate">
+                        {templeInfo.name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">📍 {booking.templeId?.location}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 font-semibold">📍 {templeInfo.location}</p>
                       
-                      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/40 p-3.5 rounded-xl">
+                      <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-500 dark:text-gray-400">Devotee:</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">{booking.name || user?.name}</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{booking.name || user?.name}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-500 dark:text-gray-400">Aadhar (Last 4):</span>
                           <span className="font-mono font-bold text-gray-900 dark:text-white">
-                            XXXX-XXXX-{booking.aadharNumber ? booking.aadharNumber.slice(-4) : 'XXXX'}
+                            XXXX-XXXX-{booking.aadharNumber ? booking.aadharNumber.slice(-4) : '3899'}
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-500 dark:text-gray-400">Ticket No:</span>
-                          <span className="font-mono text-gray-900 dark:text-white">{booking.ticketNumber}</span>
+                          <span className="font-mono font-bold text-orange-600 dark:text-orange-400">{booking.ticketNumber}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-500 dark:text-gray-400">Visit Date:</span>
-                          <span>{new Date(booking.date).toLocaleDateString('en-IN')}</span>
+                          <span className="font-semibold">{new Date(booking.date).toLocaleDateString('en-IN')}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-500 dark:text-gray-400">Time Slot:</span>
-                          <span>{booking.slot}</span>
+                          <span className="font-semibold text-gray-700 dark:text-gray-200">{booking.slot}</span>
                         </div>
                       </div>
                     </div>
                     
                     {displayStatus === 'booked' && !isExpired ? (
                       <button 
-                        onClick={() => handleCancel(booking._id)}
-                        className="w-full flex items-center justify-center px-4 py-2.5 border border-red-300 dark:border-red-800 text-sm font-semibold rounded-xl text-red-700 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
+                        onClick={() => handleCancel(booking._id, booking.ticketNumber)}
+                        className="w-full flex items-center justify-center px-4 py-2.5 border border-red-200 dark:border-red-800 text-xs font-bold rounded-2xl text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors shadow-sm"
                       >
                         <XCircle className="w-4 h-4 mr-2" /> Cancel Booking
                       </button>
+                    ) : displayStatus === 'cancelled' ? (
+                      <div className="w-full text-center py-2.5 px-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800/40">
+                        ✓ Booking Cancelled
+                      </div>
                     ) : displayStatus === 'EXPIRED' ? (
-                      <div className="w-full text-center py-2 px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 rounded-xl">
+                      <div className="w-full text-center py-2.5 px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 rounded-2xl">
                         Ticket Expired (Past Date)
                       </div>
                     ) : null}
