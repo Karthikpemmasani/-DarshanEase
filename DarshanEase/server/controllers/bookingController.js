@@ -136,10 +136,77 @@ const cancelBooking = async (req, res) => {
   }
 };
 
+// @desc    Sync booking publicly from any device
+// @route   POST /api/bookings/public-sync
+// @access  Public
+const syncPublicBooking = async (req, res) => {
+  try {
+    const { templeId, date, slot, name, aadharNumber, ticketNumber, status, _id } = req.body;
+    if (!name || !aadharNumber) {
+      return res.status(400).json({ message: 'Name and Aadhar are required' });
+    }
+
+    const tNo = ticketNumber || 'TKT-' + Math.random().toString(36).substring(2, 11).toUpperCase();
+    const bId = _id || 'bkg_' + Date.now() + Math.random().toString(36).substring(2, 6);
+
+    const newBookingData = {
+      _id: bId,
+      userId: req.user?._id || 'usr_public_' + Date.now(),
+      templeId: templeId || { name: 'Tirumala Venkateswara Temple', location: 'Tirupati, AP' },
+      date: date ? new Date(date) : new Date(),
+      slot: slot || 'Morning Aarti (06:00 AM - 08:00 AM)',
+      name,
+      aadharNumber,
+      ticketNumber: tNo,
+      status: status || 'booked',
+      createdAt: new Date(),
+    };
+
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const existing = await Booking.findOne({ ticketNumber: tNo });
+        if (existing) {
+          if (status) existing.status = status;
+          await existing.save();
+          return res.json(existing);
+        }
+        const booking = new Booking(newBookingData);
+        await booking.save();
+        return res.status(201).json(booking);
+      } catch (err) {
+        console.log('MongoDB syncPublicBooking error, using memoryStore:', err.message);
+      }
+    }
+
+    const synced = memoryStore.createBooking(newBookingData);
+    res.status(201).json(synced);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get all public bookings across devices
+// @route   GET /api/bookings/public-sync
+// @access  Public
+const getPublicBookings = async (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const bookings = await Booking.find({}).populate('userId', 'name email').populate('templeId', 'name');
+      return res.json(bookings);
+    } catch (err) {
+      console.log('MongoDB getPublicBookings error:', err.message);
+    }
+  }
+  const bookings = memoryStore.getAllBookings();
+  res.json(bookings);
+};
+
 module.exports = {
   addBooking,
   getMyBookings,
   getAllBookings,
   cancelBooking,
+  syncPublicBooking,
+  getPublicBookings,
 };
 

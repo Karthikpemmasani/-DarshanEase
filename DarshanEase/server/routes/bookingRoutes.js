@@ -5,9 +5,15 @@ const {
   getMyBookings,
   getAllBookings,
   cancelBooking,
+  syncPublicBooking,
+  getPublicBookings,
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
+
+router.route('/public-sync')
+  .get(getPublicBookings)
+  .post(syncPublicBooking);
 
 router.route('/')
   .post(protect, addBooking)

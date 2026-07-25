@@ -1,67 +1,57 @@
 import axios from 'axios';
 
-const CLOUD_BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019f9a0c-1e9f-731f-ba69-05be463f320c';
+const RENDER_BACKEND_URL = 'https://darshanease-6lm4.onrender.com/api/bookings/public-sync';
 
 export const fetchCloudBookings = async () => {
+  let list = [];
   try {
-    const { data } = await axios.get(CLOUD_BLOB_URL, { timeout: 5000 });
-    if (Array.isArray(data)) {
-      return data;
-    }
-  } catch (error) {
-    console.log('Cloud sync fetch error:', error.message);
-  }
-  return [];
+    const { data } = await axios.get('/api/bookings/public-sync', { timeout: 4000 });
+    if (Array.isArray(data) && data.length > 0) return data;
+  } catch (e) {}
+
+  try {
+    const { data } = await axios.get(RENDER_BACKEND_URL, { timeout: 6000 });
+    if (Array.isArray(data) && data.length > 0) return data;
+  } catch (e) {}
+
+  try {
+    list = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+  } catch (e) {}
+
+  return list;
 };
 
 export const pushCloudBooking = async (newBooking) => {
   try {
-    const currentBookings = await fetchCloudBookings();
-    
-    const exists = currentBookings.some(
-      (b) => (b._id && b._id === newBooking._id) || (b.ticketNumber && b.ticketNumber === newBooking.ticketNumber)
-    );
+    await axios.post('/api/bookings/public-sync', newBooking, { timeout: 4000 });
+  } catch (e) {}
 
-    let updatedList = [];
-    if (exists) {
-      updatedList = currentBookings.map((b) =>
-        (b._id && b._id === newBooking._id) || (b.ticketNumber && b.ticketNumber === newBooking.ticketNumber)
-          ? { ...b, ...newBooking }
-          : b
-      );
-    } else {
-      updatedList = [newBooking, ...currentBookings];
-    }
+  try {
+    await axios.post(RENDER_BACKEND_URL, newBooking, { timeout: 6000 });
+  } catch (e) {}
 
-    await axios.put(CLOUD_BLOB_URL, updatedList, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 5000,
-    });
-
-    return updatedList;
-  } catch (error) {
-    console.log('Cloud sync push error:', error.message);
-    return [];
-  }
+  try {
+    const existing = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+    const filtered = existing.filter((b) => b.ticketNumber !== newBooking.ticketNumber && b._id !== newBooking._id);
+    localStorage.setItem('darshanease_all_bookings', JSON.stringify([newBooking, ...filtered]));
+  } catch (e) {}
 };
 
 export const updateCloudBookingStatus = async (bookingId, ticketNumber, status) => {
+  const payload = { _id: bookingId, ticketNumber, status };
   try {
-    const currentBookings = await fetchCloudBookings();
-    const updatedList = currentBookings.map((b) => {
-      if ((bookingId && b._id === bookingId) || (ticketNumber && b.ticketNumber === ticketNumber)) {
-        return { ...b, status };
-      }
-      return b;
-    });
+    await axios.post('/api/bookings/public-sync', payload, { timeout: 4000 });
+  } catch (e) {}
 
-    await axios.put(CLOUD_BLOB_URL, updatedList, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 5000,
-    });
-    return updatedList;
-  } catch (error) {
-    console.log('Cloud sync status update error:', error.message);
-    return [];
-  }
+  try {
+    await axios.post(RENDER_BACKEND_URL, payload, { timeout: 6000 });
+  } catch (e) {}
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+    const updated = existing.map((b) =>
+      b._id === bookingId || b.ticketNumber === ticketNumber ? { ...b, status } : b
+    );
+    localStorage.setItem('darshanease_all_bookings', JSON.stringify(updated));
+  } catch (e) {}
 };

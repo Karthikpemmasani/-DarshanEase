@@ -117,15 +117,15 @@ const PaymentSuccess = () => {
         >
           View All Bookings
         </Link>
-        <button 
+        <Link 
+          to="/"
           onClick={() => {
             toast.success('Booking completed! May Lord bless your journey.');
-            navigate('/');
           }}
-          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-extrabold rounded-xl text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-green-500/25"
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-extrabold rounded-xl text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-green-500/25 cursor-pointer"
         >
           <CheckCircle className="w-5 h-5 mr-2" /> Done
-        </button>
+        </Link>
       </div>
     </div>
   );
