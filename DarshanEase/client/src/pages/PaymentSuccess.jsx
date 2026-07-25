@@ -104,19 +104,28 @@ const PaymentSuccess = () => {
         </div>
       </div>
 
-      <div className="mt-8 flex space-x-4">
+      <div className="mt-8 flex flex-wrap justify-center gap-4">
         <button 
           onClick={handleDownloadPDF}
-          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 transition-colors shadow-lg hover:shadow-orange-500/20"
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 transition-colors shadow-lg hover:shadow-orange-500/20"
         >
           <Download className="w-5 h-5 mr-2" /> Download PDF
         </button>
         <Link 
           to="/my-bookings"
-          className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+          className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-semibold rounded-xl text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
         >
           View All Bookings
         </Link>
+        <button 
+          onClick={() => {
+            toast.success('Booking completed! May Lord bless your journey.');
+            navigate('/');
+          }}
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-extrabold rounded-xl text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-green-500/25"
+        >
+          <CheckCircle className="w-5 h-5 mr-2" /> Done
+        </button>
       </div>
     </div>
   );

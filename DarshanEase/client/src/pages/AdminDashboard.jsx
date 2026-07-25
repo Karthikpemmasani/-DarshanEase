@@ -11,7 +11,8 @@ const AdminDashboard = () => {
   const [temples, setTemples] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, temples, bookings
+  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, temples, bookings, support
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('all'); // all, booked, completed, cancelled
 
   const sampleBookings = [
     {
@@ -479,11 +480,35 @@ const AdminDashboard = () => {
                   fetchBookings();
                   toast.success('Bookings list refreshed!');
                 }}
-                className="px-4 py-2 bg-orange-50 dark:bg-gray-700 text-orange-600 dark:text-orange-300 hover:bg-orange-100 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors self-start md:self-auto"
+                className="px-4 py-2 bg-orange-50 dark:bg-gray-700 text-orange-600 dark:text-orange-300 hover:bg-orange-100 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors self-start md:self-auto shadow-sm"
               >
                 🔄 Refresh Bookings
               </button>
             </div>
+
+            {/* Status Filter Tabs */}
+            <div className="px-6 py-3 bg-gray-50/70 dark:bg-gray-900/40 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-gray-500 uppercase mr-1">Filter By Status:</span>
+              {[
+                { id: 'all', label: 'All Bookings 📋' },
+                { id: 'booked', label: 'Active Booked 🎟️' },
+                { id: 'completed', label: 'Completed Darshans ✅' },
+                { id: 'cancelled', label: 'Cancelled Tickets ❌' },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setBookingStatusFilter(f.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    bookingStatusFilter === f.id
+                      ? 'bg-orange-600 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-orange-50'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-900/50">
@@ -497,45 +522,62 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {bookings.map((booking, idx) => {
-                    const isPast = new Date(booking.date).setHours(23,59,59,999) < new Date();
-                    const displayStatus = isPast && booking.status === 'booked' ? 'EXPIRED' : booking.status;
-                    const devoteeName = resolveDevoteeName(booking);
-                    const last4 = resolveAadharLast4(booking);
-                    const templeName = resolveTempleName(booking);
-                    const ticketNo = booking.ticketNumber || `TKT-8849${idx + 10}`;
-                    
-                    return (
-                      <tr key={booking._id || idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-bold text-orange-600 dark:text-orange-400">
-                          {ticketNo}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
-                          {devoteeName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
-                          XXXX-XXXX-{last4}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                          {templeName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                          {new Date(booking.date).toLocaleDateString('en-IN')} <br/>
-                          <span className="text-xs text-gray-400 font-medium">{booking.slot}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full uppercase ${
-                            displayStatus === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 
-                            displayStatus === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 
-                            displayStatus === 'EXPIRED' ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
-                            'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300'
-                          }`}>
-                            {displayStatus}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {bookings
+                    .filter((b) => {
+                      const isPastOrToday = new Date(b.date).setHours(23, 59, 59, 999) <= new Date();
+                      const computedStatus =
+                        b.status === 'cancelled'
+                          ? 'cancelled'
+                          : (b.status === 'completed' || isPastOrToday)
+                          ? 'completed'
+                          : 'booked';
+
+                      if (bookingStatusFilter === 'all') return true;
+                      return computedStatus === bookingStatusFilter;
+                    })
+                    .map((booking, idx) => {
+                      const isPastOrToday = new Date(booking.date).setHours(23, 59, 59, 999) <= new Date();
+                      const displayStatus =
+                        booking.status === 'cancelled'
+                          ? 'CANCELLED'
+                          : (booking.status === 'completed' || isPastOrToday)
+                          ? 'COMPLETED'
+                          : 'BOOKED';
+                      const devoteeName = resolveDevoteeName(booking);
+                      const last4 = resolveAadharLast4(booking);
+                      const templeName = resolveTempleName(booking);
+                      const ticketNo = booking.ticketNumber || `TKT-8849${idx + 10}`;
+
+                      return (
+                        <tr key={booking._id || idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-bold text-orange-600 dark:text-orange-400">
+                            {ticketNo}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+                            {devoteeName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
+                            XXXX-XXXX-{last4}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                            {templeName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                            {new Date(booking.date).toLocaleDateString('en-IN')} <br/>
+                            <span className="text-xs text-gray-400 font-medium">{booking.slot}</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-extrabold rounded-full uppercase ${
+                              displayStatus === 'COMPLETED' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 
+                              displayStatus === 'CANCELLED' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 
+                              'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300'
+                            }`}>
+                              {displayStatus}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
