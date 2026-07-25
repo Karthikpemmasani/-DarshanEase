@@ -2,7 +2,7 @@
 
 ![React](https://img.shields.io/badge/React-18.x-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.x-purple.svg)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg)
+![CSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg)
 ![NodeJS](https://img.shields.io/badge/Node.js-18.x-green.svg)
 ![Express](https://img.shields.io/badge/Express-4.x-lightgrey.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-4EA94B.svg)
