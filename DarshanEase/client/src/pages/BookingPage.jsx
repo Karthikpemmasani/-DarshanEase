@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
 import { Calendar, Clock, CreditCard, User, Fingerprint, ShieldCheck, ArrowRight } from 'lucide-react';
+import { pushCloudBooking } from '../utils/cloudStore';
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -102,6 +103,13 @@ const BookingPage = () => {
           status: 'booked',
           createdAt: new Date().toISOString()
         };
+      }
+
+      // Sync to global Cloud Store across all devices & browsers
+      try {
+        await pushCloudBooking(newBooking);
+      } catch (cloudErr) {
+        console.log('Cloud sync error:', cloudErr);
       }
 
       // Sync to localStorage for instant client rendering in MyBookings & Admin Dashboard

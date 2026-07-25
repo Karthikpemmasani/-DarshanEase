@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
 import { Users, Building, Ticket, Plus, Trash2, Edit } from 'lucide-react';
+import { fetchCloudBookings } from '../utils/cloudStore';
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -133,6 +134,13 @@ const AdminDashboard = () => {
   };
 
   const fetchBookings = async () => {
+    let cloudList = [];
+    try {
+      cloudList = await fetchCloudBookings();
+    } catch (e) {
+      console.log('Cloud fetch error');
+    }
+
     let apiList = [];
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token || 'admin_session_token_darshanease_2026'}` } };
@@ -162,7 +170,7 @@ const AdminDashboard = () => {
     }
 
     const mergedMap = new Map();
-    [...apiList, ...localAll, ...localMy, ...sampleBookings].forEach((b) => {
+    [...cloudList, ...apiList, ...localAll, ...localMy, ...sampleBookings].forEach((b) => {
       if (b) {
         const key = b.ticketNumber || b._id || ('bkg_' + Math.random());
         mergedMap.set(key.toString(), b);

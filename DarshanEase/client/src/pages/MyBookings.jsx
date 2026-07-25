@@ -5,6 +5,7 @@ import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
 import { Ticket, Calendar, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { fetchCloudBookings, updateCloudBookingStatus } from '../utils/cloudStore';
 
 const MyBookings = () => {
   const { user } = useContext(AuthContext);
@@ -35,6 +36,11 @@ const MyBookings = () => {
 
   const fetchBookings = async () => {
     await fetchTemples();
+    let cloudList = [];
+    try {
+      cloudList = await fetchCloudBookings();
+    } catch (e) {}
+
     let apiList = [];
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token || 'user_token_darshanease'}` } };
@@ -59,7 +65,7 @@ const MyBookings = () => {
     }
 
     const mergedMap = new Map();
-    [...apiList, ...localMy, ...localAll].forEach((b) => {
+    [...cloudList, ...apiList, ...localMy, ...localAll].forEach((b) => {
       if (b && (b._id || b.ticketNumber)) {
         const key = (b.ticketNumber || b._id).toString();
         const existing = mergedMap.get(key);
@@ -91,6 +97,11 @@ const MyBookings = () => {
       } catch (error) {
         console.log('Cancel API fallback');
       }
+
+      // Update cloud store cancellation
+      try {
+        await updateCloudBookingStatus(id, ticketNumber, 'cancelled');
+      } catch (cloudErr) {}
 
       // Record in cancelled store
       try {
