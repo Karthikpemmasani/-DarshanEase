@@ -42,6 +42,7 @@
 > 3. Drag and drop your `.mp4` or `.mov` screen recording video file into the editor. GitHub will auto-upload and generate an embedded video player!
 
 ```markdown
+https://github.com/Karthikpemmasani/-DarshanEase/blob/main/darshan-ease%20demo%20video%20.mp4
  
 ```
 
