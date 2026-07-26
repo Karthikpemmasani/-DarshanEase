@@ -36,14 +36,13 @@
 ## 🎥 Project Demo Video
 
 > [!TIP]
-> **To add your demo video directly to this README**:
+> 
 > 1. Open your repository on GitHub: [https://github.com/Karthikpemmasani/-DarshanEase](https://github.com/Karthikpemmasani/-DarshanEase)
 > 2. Click the edit (✏️) icon on `README.md`.
 > 3. Drag and drop your `.mp4` or `.mov` screen recording video file into the editor. GitHub will auto-upload and generate an embedded video player!
 
 ```markdown
-<!-- Drop your GitHub video URL or GIF link below -->
-![DarshanEase Demo](https://github.com/Karthikpemmasani/-DarshanEase/raw/main/assets/demo.gif)
+ 
 ```
 
 ---
