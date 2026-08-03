@@ -1,11 +1,11 @@
 {
-  "name": "darshanease-root",
+  "name": "darshanease-backend",
   "version": "1.0.0",
-  "description": "DarshanEase Fullstack System",
-  "main": "api/index.js",
+  "description": "Backend API for DarshanEase",
+  "main": "server.js",
   "scripts": {
-    "start": "node DarshanEase/server/server.js",
-    "dev": "node DarshanEase/server/server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
