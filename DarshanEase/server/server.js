@@ -18,19 +18,30 @@ app.use(helmet({
 }));
 app.use(morgan('dev'));
 
-// Root Health Check Route
+// Root Health Check Routes
 app.get('/', (req, res) => {
   res.send('DarshanEase Backend API is running!');
 });
 
+app.get('/api', (req, res) => {
+  res.json({ status: 'healthy', message: 'DarshanEase API is active' });
+});
 
-// Database Connection
+// Database Connection with graceful fallback
 mongoose
   .connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/darshanease', {
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 3000,
   })
   .then(() => console.log('MongoDB Connected'))
-  .catch((err) => console.log('MongoDB connection error (Fallback in-memory mode active):', err.message));
+  .catch((err) => console.log('MongoDB connection warning (In-Memory Failover Active):', err.message));
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.log('Uncaught Exception thrown:', err.message);
+});
 
 
 // Routes
