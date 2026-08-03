@@ -255,14 +255,29 @@ const AdminDashboard = () => {
     }
 
     const mergedMap = new Map();
-    [...cloudList, ...apiList, ...localAll, ...localMy, ...sampleBookings].forEach((b) => {
+    // Prioritize newest user bookings over sample data
+    [...cloudList, ...apiList, ...localAll, ...localMy].forEach((b) => {
       if (b) {
         const key = b.ticketNumber || b._id || ('bkg_' + Math.random());
         mergedMap.set(key.toString(), b);
       }
     });
 
-    const finalBookings = Array.from(mergedMap.values());
+    if (mergedMap.size === 0) {
+      sampleBookings.forEach((b) => {
+        if (b) {
+          const key = b.ticketNumber || b._id;
+          mergedMap.set(key.toString(), b);
+        }
+      });
+    }
+
+    const finalBookings = Array.from(mergedMap.values()).sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : (a.date ? new Date(a.date).getTime() : 0);
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : (b.date ? new Date(b.date).getTime() : 0);
+      return dateB - dateA; // Newest bookings on top!
+    });
+
     setBookings(finalBookings);
     setStats((prev) => ({
       usersCount: prev.usersCount || 15,
