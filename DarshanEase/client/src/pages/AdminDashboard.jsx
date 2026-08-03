@@ -5,7 +5,7 @@ import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
 import { Users, Building, Ticket, Plus, Trash2, Edit, Search, Download, Eye, CheckCircle, XCircle, RefreshCw, X, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { fetchCloudBookings, updateCloudBookingStatus } from '../utils/cloudStore';
+import { fetchCloudBookings, updateCloudBookingStatus, deleteCloudBooking } from '../utils/cloudStore';
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -153,6 +153,39 @@ const AdminDashboard = () => {
     if (b.status === 'cancelled') return 'cancelled';
     if (b.status === 'completed' || isBookingCompleted(b.date, b.slot)) return 'completed';
     return 'booked';
+  };
+
+  const resolveBookingTimestamp = (b) => {
+    const rawDate = b.createdAt || b.bookedAt || b.date;
+    if (!rawDate) return 'Today';
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return 'Today';
+      return d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return 'Today';
+    }
+  };
+
+  const handleDeleteBooking = async (booking) => {
+    const ticketNo = booking.ticketNumber;
+    const bId = booking._id;
+
+    if (!window.confirm(`Are you sure you want to permanently delete ticket ${ticketNo || ''}?`)) {
+      return;
+    }
+
+    setBookings((prev) =>
+      prev.filter((b) => b.ticketNumber !== ticketNo && b._id !== bId)
+    );
+
+    try {
+      await deleteCloudBooking(bId, ticketNo);
+      const config = { headers: { Authorization: `Bearer ${user?.token || 'admin_session_token_darshanease_2026'}` } };
+      await axios.delete(`/api/bookings/${bId}`, config);
+    } catch (e) {}
+
+    toast.success(`Booking ${ticketNo || ''} deleted permanently`);
   };
 
   const handleUpdateBookingStatus = async (booking, newStatus) => {
@@ -753,8 +786,13 @@ const AdminDashboard = () => {
                             {templeName}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {new Date(booking.date).toLocaleDateString('en-IN')} <br/>
-                            <span className="text-xs text-gray-400 font-medium">{booking.slot}</span>
+                            <div className="font-bold text-gray-900 dark:text-white">
+                              📅 {new Date(booking.date).toLocaleDateString('en-IN')}
+                            </div>
+                            <div className="text-xs text-gray-500 font-medium">⏰ {booking.slot}</div>
+                            <div className="text-[11px] text-orange-600 dark:text-orange-400 font-semibold mt-0.5">
+                              🕒 Booked: {resolveBookingTimestamp(booking)}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-extrabold rounded-full uppercase ${
@@ -785,12 +823,19 @@ const AdminDashboard = () => {
                             {displayStatus !== 'CANCELLED' && (
                               <button
                                 onClick={() => handleUpdateBookingStatus(booking, 'cancelled')}
-                                className="px-2 py-1 bg-red-50 dark:bg-gray-700 text-red-600 dark:text-red-400 hover:bg-red-100 rounded-lg transition-colors"
+                                className="px-2 py-1 bg-amber-50 dark:bg-gray-700 text-amber-600 dark:text-amber-400 hover:bg-amber-100 rounded-lg transition-colors"
                                 title="Cancel Booking"
                               >
                                 ❌ Cancel
                               </button>
                             )}
+                            <button
+                              onClick={() => handleDeleteBooking(booking)}
+                              className="px-2 py-1 bg-red-50 dark:bg-gray-700 text-red-600 dark:text-red-400 hover:bg-red-100 rounded-lg transition-colors font-bold"
+                              title="Delete Booking Record"
+                            >
+                              🗑️ Delete
+                            </button>
                           </td>
                         </tr>
                       );

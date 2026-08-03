@@ -119,3 +119,33 @@ export const updateCloudBookingStatus = async (bookingId, ticketNumber, status) 
     localStorage.setItem('darshanease_all_bookings', JSON.stringify(updated));
   } catch (e) {}
 };
+
+export const deleteCloudBooking = async (bookingId, ticketNumber) => {
+  try {
+    const current = await fetchCloudBookings();
+    const updated = current.filter(
+      (b) => b._id !== bookingId && (!ticketNumber || b.ticketNumber !== ticketNumber)
+    );
+    await fetch(JSONBLOB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(updated),
+    });
+  } catch (e) {}
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('darshanease_all_bookings') || '[]');
+    const updated = existing.filter(
+      (b) => b._id !== bookingId && (!ticketNumber || b.ticketNumber !== ticketNumber)
+    );
+    localStorage.setItem('darshanease_all_bookings', JSON.stringify(updated));
+  } catch (e) {}
+
+  try {
+    const my = JSON.parse(localStorage.getItem('my_darshan_bookings') || '[]');
+    const updatedMy = my.filter(
+      (b) => b._id !== bookingId && (!ticketNumber || b.ticketNumber !== ticketNumber)
+    );
+    localStorage.setItem('my_darshan_bookings', JSON.stringify(updatedMy));
+  } catch (e) {}
+};
