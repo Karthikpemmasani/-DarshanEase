@@ -64,17 +64,37 @@ const MyBookings = () => {
       console.log('localStorage read error');
     }
 
+    const userEmail = (user?.email || '').toLowerCase();
+    const userName = (user?.name || '').toLowerCase();
+    const userIdStr = (user?._id || '').toString();
+    const isAdmin = user?.role === 'admin';
+
     const mergedMap = new Map();
-    [...cloudList, ...apiList, ...localMy, ...localAll].forEach((b) => {
+    const rawList = isAdmin ? [...cloudList, ...apiList, ...localMy, ...localAll] : [...apiList, ...localMy];
+
+    rawList.forEach((b) => {
       if (b && (b._id || b.ticketNumber)) {
         const key = (b.ticketNumber || b._id).toString();
-        const existing = mergedMap.get(key);
+
+        // Scoping: If regular devotee user, filter strictly for their own tickets
+        if (!isAdmin) {
+          const bUserId = (b.userId?._id || b.userId || '').toString();
+          const bEmail = (b.email || b.userEmail || '').toLowerCase();
+          const bName = (b.name || '').toLowerCase();
+
+          const isMine =
+            (userIdStr && bUserId === userIdStr) ||
+            (userEmail && bEmail === userEmail) ||
+            (userName && bName === userName) ||
+            localMy.some((myB) => (myB.ticketNumber && myB.ticketNumber === b.ticketNumber) || (myB._id && myB._id === b._id));
+
+          if (!isMine) return;
+        }
 
         const isCancelled =
           cancelledIds.includes(b._id?.toString()) ||
           (b.ticketNumber && cancelledIds.includes(b.ticketNumber.toString())) ||
-          b.status === 'cancelled' ||
-          (existing && existing.status === 'cancelled');
+          b.status === 'cancelled';
 
         const updatedBooking = { ...b, status: isCancelled ? 'cancelled' : b.status };
         mergedMap.set(key, updatedBooking);
