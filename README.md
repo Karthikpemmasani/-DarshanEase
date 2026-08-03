@@ -2,7 +2,7 @@
 
 ![React](https://img.shields.io/badge/React-18.x-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.x-purple.svg)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg)
+![CSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg)
 ![NodeJS](https://img.shields.io/badge/Node.js-18.x-green.svg)
 ![Express](https://img.shields.io/badge/Express-4.x-lightgrey.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-4EA94B.svg)
@@ -36,14 +36,14 @@
 ## 🎥 Project Demo Video
 
 > [!TIP]
-> **To add your demo video directly to this README**:
+> 
 > 1. Open your repository on GitHub: [https://github.com/Karthikpemmasani/-DarshanEase](https://github.com/Karthikpemmasani/-DarshanEase)
 > 2. Click the edit (✏️) icon on `README.md`.
 > 3. Drag and drop your `.mp4` or `.mov` screen recording video file into the editor. GitHub will auto-upload and generate an embedded video player!
 
 ```markdown
-<!-- Drop your GitHub video URL or GIF link below -->
-![DarshanEase Demo](https://github.com/Karthikpemmasani/-DarshanEase/raw/main/assets/demo.gif)
+https://github.com/Karthikpemmasani/-DarshanEase/blob/main/darshan-ease%20demo%20video%20.mp4
+ 
 ```
 
 ---
