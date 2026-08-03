@@ -28,7 +28,7 @@
 ## 🌐 Live Deployments & Admin Access
 
 * **Frontend Application (Vercel)**: [https://darshan-ease-pied.vercel.app](https://darshan-ease-pied.vercel.app)
-* **Backend API (Render)**: [https://darshanease-6lm4.onrender.com](https://darshanease-6lm4.onrender.com)
+* **Backend API (Render)**: [https://darshanease-61m4.onrender.com](https://darshanease-61m4.onrender.com)
 * **Admin Portal Login**: [https://darshan-ease-pied.vercel.app/admin](https://darshan-ease-pied.vercel.app/admin)
 
 ---

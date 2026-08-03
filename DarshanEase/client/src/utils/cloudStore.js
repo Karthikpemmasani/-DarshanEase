@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const RENDER_BACKEND_URL = 'https://darshanease-6lm4.onrender.com/api/bookings/public-sync';
+const RENDER_BACKEND_URL = 'https://darshanease-61m4.onrender.com/api/bookings/public-sync';
 const JSONBLOB_URL = 'https://jsonblob.com/api/jsonBlob/019f9a1b-fb9d-73bc-b3ee-7ce017d11ad8';
 
 export const fetchCloudBookings = async () => {
