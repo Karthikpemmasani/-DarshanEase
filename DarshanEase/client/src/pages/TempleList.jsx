@@ -69,7 +69,14 @@ const TempleList = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/temples?keyword=${keyword}&state=${stateFilter}`);
-      setTemples(data);
+      const sorted = Array.isArray(data) ? [...data].sort((a, b) => {
+        const isA = (a.name || '').toLowerCase().includes('tirumala');
+        const isB = (b.name || '').toLowerCase().includes('tirumala');
+        if (isA && !isB) return -1;
+        if (!isA && isB) return 1;
+        return 0;
+      }) : [];
+      setTemples(sorted);
     } catch (error) {
       toast.error('Failed to load temples');
     } finally {

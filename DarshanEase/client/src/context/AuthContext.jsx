@@ -46,6 +46,13 @@ export const AuthProvider = ({ children }) => {
       const { data } = await axios.post('/api/auth/register', { name, email, password, phone });
       setUser(data);
       localStorage.setItem('userInfo', JSON.stringify(data));
+
+      try {
+        const existingUsers = JSON.parse(localStorage.getItem('darshanease_registered_users') || '[]');
+        const updatedUsers = [data, ...existingUsers.filter((u) => u.email !== email)];
+        localStorage.setItem('darshanease_registered_users', JSON.stringify(updatedUsers));
+      } catch (e) {}
+
       return { success: true };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Registration failed' };

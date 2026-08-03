@@ -22,7 +22,14 @@ const getTemples = async (req, res) => {
       const stateFilter = state ? { state } : {};
 
       const temples = await Temple.find({ ...searchFilter, ...stateFilter });
-      return res.json(temples);
+      const sortedTemples = [...temples].sort((a, b) => {
+        const isA = a.name.toLowerCase().includes('tirumala');
+        const isB = b.name.toLowerCase().includes('tirumala');
+        if (isA && !isB) return -1;
+        if (!isA && isB) return 1;
+        return 0;
+      });
+      return res.json(sortedTemples);
     } catch (err) {
       console.log('MongoDB getTemples error, using memoryStore:', err.message);
     }
@@ -30,7 +37,14 @@ const getTemples = async (req, res) => {
 
   // Memory fallback
   const result = memoryStore.getTemples(keyword, state);
-  res.json(result);
+  const sortedResult = [...result].sort((a, b) => {
+    const isA = a.name.toLowerCase().includes('tirumala');
+    const isB = b.name.toLowerCase().includes('tirumala');
+    if (isA && !isB) return -1;
+    if (!isA && isB) return 1;
+    return 0;
+  });
+  res.json(sortedResult);
 };
 
 // @desc    Get temple by ID
