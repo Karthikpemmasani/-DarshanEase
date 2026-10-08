@@ -3,6 +3,46 @@ import { Link } from 'react-router-dom';
 import { MapPin, Heart, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const getTempleImage = (temple) => {
+  const name = (temple?.name || '').toLowerCase();
+  
+  if (name.includes('tirumala') || name.includes('venkateswara') || name.includes('tirupati')) {
+    return '/images/1.jpg';
+  }
+  if (name.includes('kashi') || name.includes('vishwanath') || name.includes('varanasi')) {
+    return '/images/2.jpg';
+  }
+  if (name.includes('meenakshi') || name.includes('madurai')) {
+    return '/images/3.jpg';
+  }
+  if (name.includes('jagannath') || name.includes('puri')) {
+    return '/images/4.jpg';
+  }
+  if (name.includes('somnath') || name.includes('veraval')) {
+    return '/images/5.jpg';
+  }
+  if (name.includes('siddhivinayak') || name.includes('mumbai')) {
+    return '/images/6.jpg';
+  }
+  if (name.includes('badrinath')) {
+    return '/images/7.jpg';
+  }
+  if (name.includes('golden') || name.includes('harmandir') || name.includes('amritsar')) {
+    return '/images/8.jpg';
+  }
+
+  if (temple?.image && temple.image.startsWith('/images/')) {
+    return temple.image;
+  }
+  if (temple?.image && temple.image.startsWith('data:image')) {
+    return temple.image;
+  }
+  if (temple?.image && !temple.image.includes('photo-1600093463592') && !temple.image.includes('photo-1621847468516') && !temple.image.includes('photo-1544717305') && !temple.image.includes('photo-1605649487212')) {
+    return temple.image;
+  }
+  return '/images/1.jpg';
+};
+
 const TempleCard = ({ temple, onFavoriteToggle }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -39,16 +79,18 @@ const TempleCard = ({ temple, onFavoriteToggle }) => {
     }
   };
 
+  const displayImage = getTempleImage(temple);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full border border-gray-100 dark:border-gray-700/60 group">
       
       {/* Temple Banner Image */}
-      <div className="relative h-52 overflow-hidden">
+      <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img 
-          src={temple.image || 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'} 
+          src={displayImage} 
           alt={temple.name} 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'; }}
+          onError={(e) => { e.target.src = '/images/1.jpg'; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 

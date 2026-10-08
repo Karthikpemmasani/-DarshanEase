@@ -64,15 +64,54 @@ const TempleDetails = () => {
     }
   };
 
+const getTempleImage = (temple) => {
+  const name = (temple?.name || '').toLowerCase();
+  
+  if (name.includes('tirumala') || name.includes('venkateswara') || name.includes('tirupati')) {
+    return '/images/1.jpg';
+  }
+  if (name.includes('kashi') || name.includes('vishwanath') || name.includes('varanasi')) {
+    return '/images/2.jpg';
+  }
+  if (name.includes('meenakshi') || name.includes('madurai')) {
+    return '/images/3.jpg';
+  }
+  if (name.includes('jagannath') || name.includes('puri')) {
+    return '/images/4.jpg';
+  }
+  if (name.includes('somnath') || name.includes('veraval')) {
+    return '/images/5.jpg';
+  }
+  if (name.includes('siddhivinayak') || name.includes('mumbai')) {
+    return '/images/6.jpg';
+  }
+  if (name.includes('badrinath')) {
+    return '/images/7.jpg';
+  }
+  if (name.includes('golden') || name.includes('harmandir') || name.includes('amritsar')) {
+    return '/images/8.jpg';
+  }
+
+  if (temple?.image && temple.image.startsWith('/images/')) {
+    return temple.image;
+  }
+  if (temple?.image && temple.image.startsWith('data:image')) {
+    return temple.image;
+  }
+  return '/images/1.jpg';
+};
+
+  const displayImage = getTempleImage(temple);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
-        <div className="relative h-96">
+        <div className="relative h-96 bg-gray-100 dark:bg-gray-700">
           <img 
-            src={temple.image || 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'} 
+            src={displayImage} 
             alt={temple.name} 
             className="w-full h-full object-cover"
-            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1627894483216-2138af692e32?auto=format&fit=crop&q=80&w=800'; }}
+            onError={(e) => { e.target.src = '/images/1.jpg'; }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           
